@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Match Impact Simulator — Cric Player Insights{% endblock %}
+{% block description %}Simulate player win impact, contribution, and required strike rate under pressure match conditions.{% endblock %}
+{% block nav_simulator %}active{% endblock %}
+{% block breadcrumb %}Match Simulator{% endblock %}
+
+{% block content %}
+<section class="workspace fade-in-up">
+    <div class="hero-banner">
+        <div class="hero-eyebrow">Match Scenario Simulator</div>
+        <h1 class="hero-title">Match Impact Simulator</h1>
+        <p class="hero-subtitle">Test how changing match situations (Required Run Rate, Target Score, Dew, Pitch) impacts player performance and match win probability.</p>
+    </div>
+
+    <div class="search-card">
+        <div class="search-card-title">🎮 Scenario Control Panel</div>
+        <div class="search-card-sub">Select a player and adjust match parameters to simulate win contribution.</div>
+        
+        <form method="POST" class="analysis-form p-0" style="background:transparent;border:none;box-shadow:none;">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label">Player</label>
+                    <input list="players-dl" name="player" class="form-control" value="{{ player or '' }}" placeholder="Select player..." required>
+                </div>
+
+                <div class="col-lg-2 col-md-3">
+                    <label class="form-label">Target Runs</label>
+                    <input type="number" id="target_runs_input" name="target_runs" class="form-control" value="{{ target_runs }}" min="10" max="250" required>
+                </div>
+
+                <div class="col-lg-2 col-md-3">
+                    <label class="form-label">Overs Remaining</label>
+                    <input type="number" step="0.1" id="overs_remaining_input" name="overs_remaining" class="form-control" value="{{ overs_remaining }}" min="1" max="20" required>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label">Pitch Type</label>
+                    <select name="pitch_condition" class="form-select">
+                        <option value="Balanced Pitch" {% if pitch_condition == 'Balanced Pitch' %}selected{% endif %}>Balanced Pitch</option>
+                        <option value="Batting Friendly" {% if pitch_condition == 'Batting Friendly' %}selected{% endif %}>Batting Friendly</option>
+                        <option value="Spin Friendly / Slow" {% if pitch_condition == 'Spin Friendly / Slow' %}selected{% endif %}>Spin Friendly / Slow</option>
+                        <option value="Pace & Bounce" {% if pitch_condition == 'Pace & Bounce' %}selected{% endif %}>Pace & Bounce</option>
+                    </select>
+                </div>
+
+                <div class="col-lg-2 col-md-6">
+                    <button class="btn btn-primary w-100" type="submit">Run Simulation</button>
+                </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label">Dew Factor</label>
+                    <select name="dew_factor" class="form-select">
+                        <option value="No Dew" {% if dew_factor == 'No Dew' %}selected{% endif %}>No Dew</option>
+                        <option value="Mild Dew" {% if dew_factor == 'Mild Dew' %}selected{% endif %}>Mild Dew</option>
+                        <option value="Heavy Dew (Chasing Advantage)" {% if dew_factor == 'Heavy Dew (Chasing Advantage)' %}selected{% endif %}>Heavy Dew (Chasing Advantage)</option>
+                    </select>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label">Auto-Calculated RRR (Runs / Overs)</label>
+                    <input type="number" step="0.01" id="req_rr_input" name="req_rr" class="form-control" value="{{ req_rr }}" readonly style="opacity:0.85;cursor:not-allowed;">
+                </div>
+            </div>
+
+            <datalist id="players-dl">
+                {% for p in players %}<option value="{{ p }}">{% endfor %}
+            </datalist>
+        </form>
+    </div>
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const runsInput = document.getElementById("target_runs_input");
+    const oversInput = document.getElementById("overs_remaining_input");
+    const rrrInput = document.getElementById("req_rr_input");
+
+    function recalcRRR() {
+        const runs = parseFloat(runsInput.value) || 0;
+        const overs = parseFloat(oversInput.value) || 1.0;
+        if (overs > 0) {
+            rrrInput.value = (runs / overs).toFixed(2);
+        }
+    }
+
+    if (runsInput && oversInput && rrrInput) {
+        runsInput.addEventListener("input", recalcRRR);
+        oversInput.addEventListener("input", recalcRRR);
+        recalcRRR();
+    }
+});
+</script>
+
+{% if simulation %}
+<section class="section fade-in-up">
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Simulation Forecast</p>
+            <h2 class="section-title" style="display:flex;align-items:center;gap:12px;">
+                {{ simulation.player }}
+                <span class="badge-win" data-player="{{ simulation.player }}">{{ simulation.player }}</span>
+            </h2>
+            <p class="section-note">{{ simulation.scenario }}</p>
+        </div>
+    </div>
+
+    {% if simulation.batting_sim %}
+    <div class="mb-4">
+        <h4 style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">
+            🏏 Batting Simulation Results
+        </h4>
+        <div class="metric-grid six">
+            <div class="metric-card">
+                <p class="metric-label">Win Probability Impact</p>
+                <div class="metric-value" style="color:var(--brand);font-size:36px;">{{ simulation.batting_sim.win_probability }}%</div>
+                <div class="metric-footnote">Chasing success probability</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Target Run Share</p>
+                <div class="metric-value" style="color:var(--success);">{{ simulation.batting_sim.match_contribution_pct }}%</div>
+                <div class="metric-footnote">Expected team contribution</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Projected Output</p>
+                <div class="metric-value">{{ simulation.batting_sim.proj_runs }} runs</div>
+                <div class="metric-footnote">Off ~{{ simulation.batting_sim.proj_balls }} balls faced</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Simulated SR</p>
+                <div class="metric-value">{{ simulation.batting_sim.effective_sr }}</div>
+                <div class="metric-footnote">Req SR: {{ simulation.batting_sim.target_sr }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Boundary Frequency</p>
+                <div class="metric-value">{{ simulation.batting_sim.boundary_pct }}%</div>
+                <div class="metric-footnote">Expected 4s and 6s</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Dot Ball Risk</p>
+                <div class="metric-value" style="color:var(--warning);">{{ simulation.batting_sim.dot_pct }}%</div>
+                <div class="metric-footnote">Non-scoring ball %</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if simulation.bowling_sim %}
+    <div class="mb-4">
+        <h4 style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">
+            🎯 Bowling Simulation Results
+        </h4>
+        <div class="metric-grid three">
+            <div class="metric-card">
+                <p class="metric-label">Containment Rating</p>
+                <div class="metric-value" style="color:var(--brand-2);font-size:36px;">{{ simulation.bowling_sim.containment_score }}/100</div>
+                <div class="metric-footnote">Run containment power</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Projected Economy</p>
+                <div class="metric-value">{{ simulation.bowling_sim.effective_econ }}</div>
+                <div class="metric-footnote">Runs per over under scenario</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Projected Wickets</p>
+                <div class="metric-value">{{ simulation.bowling_sim.proj_wkts }}</div>
+                <div class="metric-footnote">In {{ simulation.bowling_sim.proj_overs }} overs</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="detail-card">
+        <p class="detail-title">💡 Simulation Summary</p>
+        <p class="detail-copy" style="font-size:14px;color:var(--ink);">{{ simulation.summary_insight }}</p>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

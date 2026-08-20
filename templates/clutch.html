@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+
+{% block title %}Clutch & Pressure Index — Cric Player Insights{% endblock %}
+{% block description %}Evaluate IPL player performance under high-pressure death overs and tight match situations.{% endblock %}
+{% block nav_clutch %}active{% endblock %}
+{% block breadcrumb %}Clutch Index{% endblock %}
+
+{% block content %}
+<section class="workspace fade-in-up">
+    <div class="hero-banner">
+        <div class="hero-eyebrow">Clutch Performance Analytics</div>
+        <h1 class="hero-title">Clutch & Pressure Index</h1>
+        <p class="hero-subtitle">Discover who stands tall under extreme pressure. Evaluates death over efficiency (Overs 16-20), high required run rate chases, and tight bowling spells with dynamic rating animations.</p>
+    </div>
+
+    <div class="search-card">
+        <div class="search-card-title">🔥 Player Pressure Lookup</div>
+        <div class="search-card-sub">Enter any IPL player name to inspect their Clutch Rating Score (0-100) and death-over metrics.</div>
+        <form method="POST" class="analysis-form p-0" style="background:transparent;border:none;box-shadow:none;">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-9">
+                    <label class="form-label">Player Name</label>
+                    <input list="players-dl" name="player" class="form-control" value="{{ player or '' }}" placeholder="e.g. MS Dhoni, AB de Villiers, Jasprit Bumrah..." required>
+                </div>
+                <div class="col-lg-3">
+                    <button class="btn btn-primary w-100" type="submit">Analyze Pressure Score</button>
+                </div>
+            </div>
+            <datalist id="players-dl">
+                {% for p in players %}<option value="{{ p }}">{% endfor %}
+            </datalist>
+        </form>
+
+        <div class="clutch-legend-grid mt-3">
+            <div class="clutch-legend-item">
+                <div class="clutch-legend-dot god"></div>
+                <div><strong>Score > 80</strong>: God Tier Flame Glow</div>
+            </div>
+            <div class="clutch-legend-item">
+                <div class="clutch-legend-dot solid"></div>
+                <div><strong>Score 50-80</strong>: Ice-Cool Teal Wave</div>
+            </div>
+            <div class="clutch-legend-item">
+                <div class="clutch-legend-dot developing"></div>
+                <div><strong>Score 0-50</strong>: Heartbeat Warning Alert</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if clutch_data %}
+<section class="section fade-in-up">
+    <!-- HERO ANIMATED SCORE CARD -->
+    <div class="clutch-score-card {% if clutch_data.clutch_score > 80 %}clutch-score-god{% elif clutch_data.clutch_score >= 50 %}clutch-score-solid{% else %}clutch-score-developing{% endif %}">
+        <canvas id="clutchSparksCanvas" class="clutch-sparks-canvas"></canvas>
+        <div class="clutch-card-content">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-7">
+                    <p class="section-kicker mb-1" style="color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px;">
+                        Player Clutch Profile
+                    </p>
+                    <h2 class="hero-title mb-3" style="font-size:36px;display:flex;align-items:center;flex-wrap:wrap;gap:12px;">
+                        {{ clutch_data.player }}
+                    </h2>
+                    <div class="mb-3">
+                        {% if clutch_data.clutch_score > 80 %}
+                            <span class="clutch-tier-badge-god">🔥 {{ clutch_data.tier }} (GOD TIER)</span>
+                        {% elif clutch_data.clutch_score >= 50 %}
+                            <span class="clutch-tier-badge-solid">⚡ {{ clutch_data.tier }} (HIGH PERFORMER)</span>
+                        {% else %}
+                            <span class="clutch-tier-badge-developing">⚠️ {{ clutch_data.tier }} (UNDER PRESSURE)</span>
+                        {% endif %}
+                    </div>
+                    <p style="font-size:14px;color:var(--ink-2);max-width:520px;margin-bottom:0;">
+                        {% if clutch_data.clutch_score > 80 %}
+                            Sensational high-pressure match-winner with legendary death-overs performance (Score > 80).
+                        {% elif clutch_data.clutch_score >= 50 %}
+                            Dependable pressure specialist with proven execution in tight situations (Score 50-80).
+                        {% else %}
+                            Developing pressure record; working towards higher death-over efficiency (Score 0-50).
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-lg-5 text-center">
+                    <div class="clutch-gauge-container">
+                        <svg class="clutch-gauge-svg" viewBox="0 0 160 160">
+                            <defs>
+                                <linearGradient id="godGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#facc15" />
+                                    <stop offset="50%" stop-color="#f97316" />
+                                    <stop offset="100%" stop-color="#ef4444" />
+                                </linearGradient>
+                                <linearGradient id="solidGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#06b6d4" />
+                                    <stop offset="100%" stop-color="#10b981" />
+                                </linearGradient>
+                                <linearGradient id="developingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#f59e0b" />
+                                    <stop offset="100%" stop-color="#dc2626" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="clutch-gauge-bg" cx="80" cy="80" r="70"></circle>
+                            <circle id="clutch-gauge-ring" class="clutch-gauge-ring" cx="80" cy="80" r="70"></circle>
+                        </svg>
+                        <div class="clutch-score-number-wrapper">
+                            <div id="clutch-score-display" class="clutch-score-val">0</div>
+                            <div class="clutch-score-max">/ 100 Score</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Range Legend Indicator -->
+            <div class="clutch-legend-grid">
+                <div class="clutch-legend-item {% if clutch_data.clutch_score > 80 %}active{% endif %}">
+                    <div class="clutch-legend-dot god"></div>
+                    <div><strong>Score > 80</strong>: God Tier Flame Glow</div>
+                </div>
+                <div class="clutch-legend-item {% if clutch_data.clutch_score >= 50 and clutch_data.clutch_score <= 80 %}active{% endif %}">
+                    <div class="clutch-legend-dot solid"></div>
+                    <div><strong>Score 50-80</strong>: Ice-Cool Wave Glow</div>
+                </div>
+                <div class="clutch-legend-item {% if clutch_data.clutch_score < 50 %}active{% endif %}">
+                    <div class="clutch-legend-dot developing"></div>
+                    <div><strong>Score 0-50</strong>: Heartbeat Warning Alert</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if clutch_data.batting %}
+    <div class="mb-4">
+        <h4 style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">
+            🏏 Death Overs Batting (Overs 16-20)
+        </h4>
+        <div class="metric-grid six">
+            <div class="metric-card">
+                <p class="metric-label">Death SR</p>
+                <div class="metric-value" style="color:var(--brand);font-size:34px;">{{ clutch_data.batting.death_sr }}</div>
+                <div class="metric-footnote">Career avg: {{ clutch_data.batting.overall_sr }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">SR Boost under Pressure</p>
+                <div class="metric-value" style="color:{% if clutch_data.batting.sr_boost >= 0 %}var(--success){% else %}var(--danger){% endif %};">
+                    {% if clutch_data.batting.sr_boost >= 0 %}+{% endif %}{{ clutch_data.batting.sr_boost }}
+                </div>
+                <div class="metric-footnote">Death SR vs Career SR</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Death Runs</p>
+                <div class="metric-value">{{ clutch_data.batting.death_runs }}</div>
+                <div class="metric-footnote">Off {{ clutch_data.batting.death_balls }} balls</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Boundary Frequency</p>
+                <div class="metric-value">{{ clutch_data.batting.boundary_pct }}%</div>
+                <div class="metric-footnote">4s and 6s rate</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Dot Ball %</p>
+                <div class="metric-value" style="color:var(--warning);">{{ clutch_data.batting.dot_pct }}%</div>
+                <div class="metric-footnote">Non-scoring rate</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Clutch Rating</p>
+                <div class="metric-value" style="font-size:16px;color:var(--brand);">{{ clutch_data.tier }}</div>
+                <div class="metric-footnote">Pressure classification</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if clutch_data.bowling %}
+    <div class="mb-4">
+        <h4 style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">
+            🎯 Death Overs Bowling (Overs 16-20)
+        </h4>
+        <div class="metric-grid three">
+            <div class="metric-card">
+                <p class="metric-label">Death Economy</p>
+                <div class="metric-value" style="color:var(--brand-2);font-size:34px;">{{ clutch_data.bowling.death_econ }}</div>
+                <div class="metric-footnote">Overall Economy: {{ clutch_data.bowling.overall_econ }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Death Wickets</p>
+                <div class="metric-value" style="color:var(--success);">{{ clutch_data.bowling.death_wickets }}</div>
+                <div class="metric-footnote">Wickets in Overs 16-20</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Balls Bowled</p>
+                <div class="metric-value">{{ clutch_data.bowling.death_balls }}</div>
+                <div class="metric-footnote">Death over sample</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- PRESSURE ATTRIBUTE RATINGS MATRIX -->
+    {% if clutch_data.attributes %}
+    <div class="mb-4">
+        <h4 style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px;">
+            📊 High-Pressure Attribute Breakdown
+        </h4>
+        <div class="row g-3">
+            <div class="col-md-3 col-6">
+                <div class="clutch-attr-card">
+                    <div class="clutch-attr-header">
+                        <span class="clutch-attr-title">💥 Boundary Power</span>
+                        <span class="clutch-attr-score">{{ clutch_data.attributes.boundary_power }}</span>
+                    </div>
+                    <div class="clutch-progress-bar">
+                        <div class="clutch-progress-fill" style="width: {{ clutch_data.attributes.boundary_power }}%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="clutch-attr-card">
+                    <div class="clutch-attr-header">
+                        <span class="clutch-attr-title">🧊 Ice-in-Veins</span>
+                        <span class="clutch-attr-score">{{ clutch_data.attributes.ice_rating }}</span>
+                    </div>
+                    <div class="clutch-progress-bar">
+                        <div class="clutch-progress-fill" style="width: {{ clutch_data.attributes.ice_rating }}%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="clutch-attr-card">
+                    <div class="clutch-attr-header">
+                        <span class="clutch-attr-title">⚡ SR Boost</span>
+                        <span class="clutch-attr-score">{{ clutch_data.attributes.acceleration }}</span>
+                    </div>
+                    <div class="clutch-progress-bar">
+                        <div class="clutch-progress-fill" style="width: {{ clutch_data.attributes.acceleration }}%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="clutch-attr-card">
+                    <div class="clutch-attr-header">
+                        <span class="clutch-attr-title">🎯 Death Lethality</span>
+                        <span class="clutch-attr-score">{{ clutch_data.attributes.lethality }}</span>
+                    </div>
+                    <div class="clutch-progress-bar">
+                        <div class="clutch-progress-fill" style="width: {{ clutch_data.attributes.lethality }}%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const scoreVal = parseInt("{{ clutch_data.clutch_score }}") || 0;
+    const scoreDisplay = document.getElementById("clutch-score-display");
+    const gaugeRing = document.getElementById("clutch-gauge-ring");
+
+    // Animate score counter up to target
+    let current = 0;
+    const duration = 1500;
+    const stepTime = 20;
+    const steps = duration / stepTime;
+    const increment = scoreVal / steps;
+
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= scoreVal) {
+            current = scoreVal;
+            clearInterval(timer);
+        }
+        if (scoreDisplay) scoreDisplay.textContent = Math.round(current);
+    }, stepTime);
+
+    // Animate SVG arc ring offset (circumference = 2 * PI * 70 ≈ 440)
+    if (gaugeRing) {
+        const strokeDashOffset = Math.max(0, 440 - (440 * scoreVal / 100));
+        setTimeout(() => {
+            gaugeRing.style.strokeDashoffset = strokeDashOffset;
+        }, 100);
+    }
+
+    // Spark Particles Generator for Score >= 50
+    const canvas = document.getElementById("clutchSparksCanvas");
+    if (canvas && scoreVal >= 50) {
+        const ctx = canvas.getContext("2d");
+        let width = canvas.width = canvas.parentElement.offsetWidth;
+        let height = canvas.height = canvas.parentElement.offsetHeight;
+        
+        window.addEventListener('resize', () => {
+            if (!canvas.parentElement) return;
+            width = canvas.width = canvas.parentElement.offsetWidth;
+            height = canvas.height = canvas.parentElement.offsetHeight;
+        });
+
+        const particles = [];
+        const numParticles = scoreVal > 80 ? 35 : 18;
+        const colors = scoreVal > 80 
+            ? ['#facc15', '#f97316', '#ef4444', '#ffffff'] 
+            : ['#06b6d4', '#10b981', '#38bdf8', '#ffffff'];
+
+        for (let i = 0; i < numParticles; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: height + Math.random() * 50,
+                radius: Math.random() * 3 + 1,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                speedY: Math.random() * 1.5 + 0.5,
+                speedX: (Math.random() - 0.5) * 0.8,
+                alpha: Math.random() * 0.7 + 0.3
+            });
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = p.color;
+                ctx.shadowBlur = scoreVal > 80 ? 10 : 6;
+                ctx.fill();
+                ctx.restore();
+
+                p.y -= p.speedY;
+                p.x += p.speedX;
+                if (p.y < -10) {
+                    p.y = height + 10;
+                    p.x = Math.random() * width;
+                }
+            });
+            requestAnimationFrame(drawParticles);
+        }
+        drawParticles();
+    }
+});
+</script>
+{% endif %}
+
+<!-- INTERACTIVE MATCH PRESSURE CALCULATOR WIDGET -->
+<section class="section fade-in-up mt-4">
+    <div class="clutch-calc-card">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-7">
+                <p class="section-kicker mb-1" style="color:var(--brand);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Interactive Widget</p>
+                <h3 class="hero-title mb-2" style="font-size:24px;">⚡ Live Match Pressure Calculator</h3>
+                <p class="text-muted" style="font-size:13px;margin-bottom:20px;">
+                    Simulate any tight match situation live to compute the Pressure Severity Index and required Clutch Tier needed to win.
+                </p>
+                <div class="row g-3">
+                    <div class="col-4">
+                        <label class="form-label" style="font-size:12px;font-weight:700;">Runs Needed</label>
+                        <input type="number" id="calcRuns" class="form-control" value="36" min="1" max="120" oninput="calculateMatchPressure()">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label" style="font-size:12px;font-weight:700;">Balls Left</label>
+                        <input type="number" id="calcBalls" class="form-control" value="18" min="1" max="60" oninput="calculateMatchPressure()">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label" style="font-size:12px;font-weight:700;">Wickets Down</label>
+                        <input type="number" id="calcWickets" class="form-control" value="5" min="0" max="9" oninput="calculateMatchPressure()">
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="clutch-calc-meter">
+                    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;">
+                        Pressure Severity Index
+                    </div>
+                    <div id="calcPressureVal" style="font-family:'Space Grotesk',sans-serif;font-size:42px;font-weight:900;color:var(--brand);margin:6px 0;">
+                        78
+                    </div>
+                    <div id="calcRRR" style="font-size:13px;font-weight:700;color:var(--ink-2);margin-bottom:10px;">
+                        Required Run Rate: 12.00 rpo
+                    </div>
+                    <div id="calcTierBadge" class="clutch-tier-badge-solid" style="font-size:12px;padding:6px 14px;">
+                        ⚡ PRO MATCH WINNER NEEDED
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- IPL CLUTCH LEGENDS SPOTLIGHT -->
+{% if clutch_legends %}
+<section class="section fade-in-up mt-4">
+    <div class="section-header mb-3">
+        <div>
+            <p class="section-kicker">Hall of Fame</p>
+            <h2 class="section-title">⭐ IPL Pressure Legends Spotlight</h2>
+        </div>
+        <p class="text-muted" style="font-size:13px;margin:0;">Curated IPL players with legendary death-over pressure records.</p>
+    </div>
+    <div class="row g-3">
+        {% for leg in clutch_legends %}
+        <div class="col-lg col-md-4 col-6">
+            <div class="clutch-legend-card">
+                <div class="clutch-legend-avatar">
+                    {% if leg.clutch_score > 80 %}🔥{% elif leg.clutch_score >= 50 %}⚡{% else %}⚠️{% endif %}
+                </div>
+                <div class="clutch-legend-name">{{ leg.player }}</div>
+                <div class="clutch-legend-score">{{ leg.clutch_score }} <span style="font-size:12px;font-weight:600;">/100</span></div>
+                <div class="mb-2">
+                    <span class="badge-win" data-player="{{ leg.player }}" style="font-size:11px;padding:3px 8px;">{{ leg.tier }}</span>
+                </div>
+                <form method="POST">
+                    <input type="hidden" name="player" value="{{ leg.player }}">
+                    <button type="submit" class="btn btn-outline btn-sm w-100" style="font-size:11px;padding:4px 8px;">
+                        Inspect Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<script>
+function calculateMatchPressure() {
+    const runs = parseFloat(document.getElementById('calcRuns').value) || 1;
+    const balls = parseFloat(document.getElementById('calcBalls').value) || 1;
+    const wkts = parseFloat(document.getElementById('calcWickets').value) || 0;
+
+    const rrr = (runs / (balls / 6.0));
+    let pressure = 50 + (rrr - 8) * 4.5 + (wkts * 3.5);
+    pressure = Math.min(99, Math.max(20, Math.round(pressure)));
+
+    const pressureElem = document.getElementById('calcPressureVal');
+    const rrrElem = document.getElementById('calcRRR');
+    const badgeElem = document.getElementById('calcTierBadge');
+
+    if (pressureElem) pressureElem.textContent = pressure;
+    if (rrrElem) rrrElem.textContent = `Required Run Rate: ${rrr.toFixed(2)} rpo`;
+
+    if (badgeElem) {
+        if (pressure > 80) {
+            badgeElem.className = 'clutch-tier-badge-god';
+            badgeElem.innerHTML = '🔥 GOD-TIER FINISHER NEEDED';
+        } else if (pressure >= 50) {
+            badgeElem.className = 'clutch-tier-badge-solid';
+            badgeElem.innerHTML = '⚡ PRO MATCH WINNER NEEDED';
+        } else {
+            badgeElem.className = 'clutch-tier-badge-developing';
+            badgeElem.innerHTML = '⚠️ MODERATE PRESSURE SITUATION';
+        }
+    }
+}
+</script>
+
+{% if top_clutch %}
+<div class="row g-3 mt-3">
+    <div class="col-lg-6">
+        <div class="section">
+            <div class="section-header">
+                <div>
+                    <p class="section-kicker">Leaderboard</p>
+                    <h2 class="section-title">Top IPL Death Batters (Overs 16-20)</h2>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Death Runs</th>
+                            <th>Balls</th>
+                            <th>Sixes</th>
+                            <th>Death SR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in top_clutch.batters %}
+                        <tr>
+                            <td class="fw-bold" style="text-align:left!important;">
+                                <span class="badge-win" data-player="{{ b.player }}">{{ b.player }}</span>
+                            </td>
+                            <td>{{ b.death_runs }}</td>
+                            <td>{{ b.death_balls }}</td>
+                            <td style="color:var(--warning);font-weight:700;">{{ b.sixes }}</td>
+                            <td style="color:var(--brand);font-weight:800;">{{ b.death_sr }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="section">
+            <div class="section-header">
+                <div>
+                    <p class="section-kicker">Leaderboard</p>
+                    <h2 class="section-title">Top IPL Death Bowlers (Overs 16-20)</h2>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Player</th>
+                            <th>Wickets</th>
+                            <th>Balls</th>
+                            <th>Death Economy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for w in top_clutch.bowlers %}
+                        <tr>
+                            <td class="fw-bold" style="text-align:left!important;">
+                                <span class="badge-win" data-player="{{ w.player }}">{{ w.player }}</span>
+                            </td>
+                            <td style="color:var(--success);font-weight:800;">{{ w.death_wkts }}</td>
+                            <td>{{ w.death_balls }}</td>
+                            <td style="color:var(--brand-2);font-weight:800;">{{ w.death_econ }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+

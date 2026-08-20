@@ -21,6 +21,24 @@ def get_head_to_head(df, batter, bowler):
         ].shape[0]
     )
 
+    winner = None
+    if balls > 0:
+        runs_per_out = runs / max(1, dismissals)
+        if dismissals == 0:
+            if sr >= 120 or runs >= 15:
+                winner = batter
+            else:
+                winner = "Even Battle"
+        else:
+            if sr >= 135 and runs_per_out >= 25:
+                winner = batter
+            elif dismissals >= 2 and sr < 135:
+                winner = bowler
+            elif runs_per_out < 20 and sr < 125:
+                winner = bowler
+            else:
+                winner = batter if sr >= 125 else bowler
+
     return {
         "batter": batter,
         "bowler": bowler,
@@ -30,6 +48,7 @@ def get_head_to_head(df, batter, bowler):
         "wickets": wickets,
         "dismissals": dismissals,
         "matchups": balls // 6 if balls > 0 else 0,
+        "winner": winner,
     }
 
 

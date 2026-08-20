@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Player Reports - Cric Player Insights{% endblock %}
+{% block description %}Download detailed CSV reports for any IPL player.{% endblock %}
+{% block nav_reports %}active{% endblock %}
+{% block breadcrumb %}Reports{% endblock %}
+
+{% block content %}
+<section class="workspace fade-in-up">
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Reports</p>
+            <h1 class="section-title">Player Reports</h1>
+            <p class="hero-copy">Generate and download a complete ball-by-ball CSV export for any IPL player in the system.</p>
+        </div>
+    </div>
+
+    <form method="POST" class="analysis-form">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-9">
+                <label class="form-label">Player Name</label>
+                <input
+                    list="players-list"
+                    name="player"
+                    class="form-control"
+                    placeholder="Search player name..."
+                    value="{{ player or '' }}"
+                    required>
+                <datalist id="players-list">
+                    {% for p in players %}
+                    <option value="{{ p }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="col-lg-3">
+                <button class="btn btn-primary w-100" type="submit">Generate Report</button>
+            </div>
+        </div>
+    </form>
+</section>
+
+{% if error %}
+<div class="alert alert-danger mx-4" role="alert">
+    <strong>Error:</strong> {{ error }}
+</div>
+{% endif %}
+
+{% if report_result %}
+<section class="section fade-in-up">
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Export Ready</p>
+            <h2 class="section-title">{{ player }} — CSV Report</h2>
+            <p class="section-note mb-3">Click the button below to download the full ball-by-ball dataset for this player.</p>
+        </div>
+    </div>
+
+    <div class="panel panel-accent text-center py-5">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📥</div>
+        <h3 class="mb-1">{{ report_result.filename }}</h3>
+        <p class="text-muted mb-4">MIME: {{ report_result.mime }}</p>
+        <a
+            href="data:{{ report_result.mime }};base64,{{ report_result.content }}"
+            download="{{ report_result.filename }}"
+            class="btn btn-primary btn-lg px-5">
+            ⬇️ Download CSV
+        </a>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}{% endblock %}

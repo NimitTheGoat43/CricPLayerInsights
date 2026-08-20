@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Performance Predictor - Cric Player Insights{% endblock %}
+{% block description %}Estimate IPL batter performance from venue, opponent, recent form and matchup history.{% endblock %}
+{% block nav_predict %}active{% endblock %}
+{% block breadcrumb %}Predictor{% endblock %}
+{% block content %}
+<section class="workspace fade-in-up">
+    <div class="hero-banner">
+        <div class="hero-eyebrow">Predictor + Performance</div>
+        <h1 class="hero-title">Player Performance Predictor</h1>
+        <p class="hero-subtitle">Estimate expected batting output from recent form, venue record, opponent history and direct matchup data with a transparent IPL model.</p>
+        <div class="hero-stats-bar">
+            <div class="hero-stat">
+                <span class="hero-stat-value">6+ Factors</span>
+                <span class="hero-stat-label">Match-ready inputs</span>
+            </div>
+            <span class="hero-stat-sep"></span>
+            <div class="hero-stat">
+                <span class="hero-stat-value">Fast</span>
+                <span class="hero-stat-label">Instant projections</span>
+            </div>
+            <span class="hero-stat-sep"></span>
+            <div class="hero-stat">
+                <span class="hero-stat-value">Trusted</span>
+                <span class="hero-stat-label">Historical accuracy</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Scenario Builder</p>
+            <h2 class="section-title">Build a match-winning forecast</h2>
+            <p class="section-note">Choose the conditions and player matchup to see a refined projection tailored to your selected IPL contest.</p>
+        </div>
+        <span class="score-badge">Transparent Estimate</span>
+    </div>
+
+    <div class="workspace-grid">
+        <form method="POST" class="analysis-form workspace-panel">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">Season</label>
+                    <select class="form-select" name="season">
+                        {% for s in seasons %}
+                        <option value="{{ s }}" {% if form_values.season == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label">Venue</label>
+                    <select class="form-select" name="venue">
+                        {% for v in venues %}
+                        <option value="{{ v }}" {% if form_values.venue == v %}selected{% endif %}>{{ v }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Batter</label>
+                <input list="players-dl" name="batter" class="form-control" value="{{ form_values.batter }}" placeholder="Select batter" required>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <label class="form-label">Bowler</label>
+                <input list="players-dl" name="bowler" class="form-control" value="{{ form_values.bowler }}" placeholder="Select bowler" required>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label">Batting Team</label>
+                <select class="form-select" name="batting_team">
+                    {% for t in teams %}
+                    <option value="{{ t }}" {% if form_values.batting_team == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <label class="form-label">Bowling Team</label>
+                <select class="form-select" name="bowling_team">
+                    {% for t in teams %}
+                    <option value="{{ t }}" {% if form_values.bowling_team == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-lg-4">
+                <button class="btn btn-primary w-100" type="submit">Predict Runs</button>
+            </div>
+        </div>
+
+        <datalist id="players-dl">
+            {% for p in players %}
+            <option value="{{ p }}">
+            {% endfor %}
+        </datalist>
+    </form>
+
+        <aside class="workspace-panel info-panel">
+            <div class="info-card">
+                <p class="info-title">Why this model works</p>
+                <ul class="info-list">
+                    <li><strong>Dismissal-aware averages</strong> use real outs to reflect true batting form.</li>
+                    <li><strong>Venue and opponent context</strong> keeps the projection grounded in match conditions.</li>
+                    <li><strong>ML + heuristic blend</strong> balances historical trends with model confidence.</li>
+                </ul>
+                <p class="info-note">For best results, choose strong player/bowler combinations with at least 5 historical innings each.</p>
+            </div>
+        </aside>
+    </div>
+</section>
+
+{% if prediction %}
+<section class="section fade-in-up">
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">AI Forecast Result</p>
+            <h2 class="section-title" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                {{ prediction.player }}
+                <span class="score-badge" data-player="{{ prediction.player }}">{{ prediction.role }}</span>
+            </h2>
+            <p class="section-note">Conditions: {{ prediction.context.venue }} • Opposition: {{ prediction.context.opponent_team }}</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="score-badge" style="background:var(--brand-glow);border-color:var(--brand);color:var(--brand);">
+                ⚡ Impact Score: {{ prediction.impact_score }}/100
+            </span>
+            <span class="score-badge" style="background:rgba(52,211,153,0.15);border-color:rgba(52,211,153,0.4);color:var(--success);">
+                🎯 {{ prediction.confidence }}% Model Confidence
+            </span>
+        </div>
+    </div>
+
+    {% if prediction.batting %}
+    <div class="mb-4">
+        <h4 style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">
+            🏏 Batting Forecast
+        </h4>
+        <div class="metric-grid six">
+            <div class="metric-card">
+                <p class="metric-label">Projected Runs</p>
+                <div class="metric-value" style="color:var(--brand);font-size:36px;">{{ prediction.batting.expected_runs }}</div>
+                <div class="metric-footnote">Range: {{ prediction.batting.low_runs }} - {{ prediction.batting.high_runs }} runs</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Projected SR</p>
+                <div class="metric-value">{{ prediction.batting.proj_sr }}</div>
+                <div class="metric-footnote">Expected strike rate</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Projected 4s</p>
+                <div class="metric-value">{{ prediction.batting.proj_fours }}</div>
+                <div class="metric-footnote">Fours count</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Projected 6s</p>
+                <div class="metric-value">{{ prediction.batting.proj_sixes }}</div>
+                <div class="metric-footnote">Sixes count</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Performance Tier</p>
+                <div class="metric-value" style="font-size:15px;color:var(--success);">{{ prediction.batting.tier }}</div>
+                <div class="metric-footnote">Scoring band</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Sample Size</p>
+                <div class="metric-value">{{ prediction.batting.sample_size }}</div>
+                <div class="metric-footnote">Innings evaluated</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if prediction.bowling %}
+    <div class="mb-4">
+        <h4 style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">
+            🎯 Bowling Forecast
+        </h4>
+        <div class="metric-grid three">
+            <div class="metric-card">
+                <p class="metric-label">Expected Wickets</p>
+                <div class="metric-value" style="color:var(--brand-2);font-size:36px;">{{ prediction.bowling.expected_wickets }}</div>
+                <div class="metric-footnote">Range: {{ prediction.bowling.low_wickets }} - {{ prediction.bowling.high_wickets }} wickets</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Projected Economy</p>
+                <div class="metric-value">{{ prediction.bowling.proj_econ }}</div>
+                <div class="metric-footnote">Runs per over</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Dot Ball Rate</p>
+                <div class="metric-value">{{ prediction.bowling.proj_dot_pct }}%</div>
+                <div class="metric-footnote">Expected non-scoring balls</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-3 mb-4">
+        <div class="col-lg-7">
+            <div class="data-block m-0">
+                <div class="data-title">Factor Breakdown</div>
+                <div class="predict-factor-grid">
+                    {% for factor in prediction.factors %}
+                    <div class="predict-factor">
+                        <span class="predict-factor-label">{{ factor.label }}</span>
+                        <strong>{{ factor.value }}</strong>
+                        <span>{{ factor.detail }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="detail-card h-100">
+                <p class="detail-title">💡 Tactical Match Insight</p>
+                <ul style="margin:0;padding-left:18px;color:var(--ink-2);font-size:13px;display:grid;gap:8px;">
+                    {% for insight in prediction.tactical_insights %}
+                    <li>{{ insight }}</li>
+                    {% endfor %}
+                </ul>
+                <div class="detail-pill-group mt-2">
+                    <span class="detail-pill">ML Model: Hybrid Form-Venue Engine</span>
+                    <span class="detail-pill">Status: Match Ready</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

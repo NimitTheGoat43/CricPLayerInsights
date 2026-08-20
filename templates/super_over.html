@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Super Over Showdown — Cric Player Insights{% endblock %}
+{% block description %}Simulate an intense 6-ball Super Over between any batter and bowler in IPL history.{% endblock %}
+{% block nav_super_over %}active{% endblock %}
+{% block breadcrumb %}Super Over Showdown{% endblock %}
+
+{% block content %}
+<section class="workspace fade-in-up">
+    <div class="hero-banner">
+        <div class="hero-eyebrow">High Stakes Simulation</div>
+        <h1 class="hero-title">⚔️ Super Over Showdown</h1>
+        <p class="hero-subtitle">Simulate a high-stakes 6-ball Super Over between any Batter and Bowler under extreme death-overs pressure with live commentary!</p>
+    </div>
+
+    <div class="search-card">
+        <form method="POST" class="analysis-form p-0" style="background:transparent;border:none;box-shadow:none;">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-5">
+                    <label class="form-label">🏏 Select Batter</label>
+                    <input list="players-dl" name="batter" class="form-control" value="{{ batter or '' }}" placeholder="e.g. MS Dhoni, AB de Villiers, V Kohli" required>
+                </div>
+                <div class="col-lg-5">
+                    <label class="form-label">🎯 Select Bowler</label>
+                    <input list="players-dl" name="bowler" class="form-control" value="{{ bowler or '' }}" placeholder="e.g. Jasprit Bumrah, SL Malinga, SP Narine" required>
+                </div>
+                <div class="col-lg-2">
+                    <button class="btn btn-primary w-100" type="submit">Start Super Over</button>
+                </div>
+            </div>
+            <datalist id="players-dl">
+                {% for p in players %}<option value="{{ p }}">{% endfor %}
+            </datalist>
+        </form>
+    </div>
+</section>
+
+{% if simulation %}
+<section class="section fade-in-up mt-4">
+    <!-- SUPER OVER SCOREBOARD HERO CARD -->
+    <div class="hero-banner mb-4" style="background:linear-gradient(135deg, rgba(234,179,8,0.15), rgba(239,68,68,0.15));border:2px solid var(--brand);box-shadow:0 0 35px rgba(56,189,248,0.25);">
+        <div class="row align-items-center g-3 text-center text-lg-start">
+            <div class="col-lg-8">
+                <div class="hero-eyebrow mb-2">Match Verdict</div>
+                <h2 style="font-size:32px;font-weight:900;margin-bottom:8px;color:var(--ink);">
+                    {{ simulation.batter }} vs {{ simulation.bowler }}
+                </h2>
+                <div class="badge-win mb-2" style="font-size:14px;padding:6px 16px;">
+                    {{ simulation.rating }}
+                </div>
+                <p style="font-size:15px;color:var(--ink-2);margin:0;">
+                    {{ simulation.verdict }}
+                </p>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Super Over Score</div>
+                <div style="font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:900;color:var(--brand);line-height:1;">
+                    {{ simulation.total_runs }} / {{ simulation.wickets }}
+                </div>
+                <div style="font-size:13px;color:var(--muted);margin-top:4px;">Off 6 Balls</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BALL-BY-BALL TIMELINE & COMMENTARY -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-12">
+            <h4 style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:16px;text-transform:uppercase;letter-spacing:0.5px;">
+                ⚡ Ball-by-Ball Live Commentary Stream
+            </h4>
+            <div class="d-flex gap-2 mb-4 overflow-auto pb-2">
+                {% for b in simulation.balls %}
+                <div class="text-center" style="min-width:70px;">
+                    <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:4px;">Ball {{ b.ball }}</div>
+                    <div class="badge {% if b.is_wicket %}bg-danger{% elif b.runs == 6 or b.runs == 4 %}bg-warning text-dark{% else %}bg-secondary{% endif %}" style="font-size:18px;padding:12px 18px;border-radius:12px;font-weight:800;box-shadow:var(--shadow-sm);">
+                        {{ b.event }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="data-block">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width:10%;">Ball</th>
+                                <th style="width:15%;">Outcome</th>
+                                <th style="width:75%;">Commentary Feed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in simulation.balls %}
+                            <tr>
+                                <td class="fw-bold">Ball 0.{{ b.ball }}</td>
+                                <td>
+                                    <span class="badge {% if b.is_wicket %}bg-danger{% elif b.runs == 6 %}bg-warning text-dark{% elif b.runs == 4 %}bg-info text-dark{% else %}bg-secondary{% endif %}" style="font-size:13px;padding:5px 12px;">
+                                        {% if b.is_wicket %}WICKET{% elif b.runs > 0 %}+{{ b.runs }} Runs{% else %}DOT BALL{% endif %}
+                                    </span>
+                                </td>
+                                <td style="text-align:left!important;font-weight:600;color:var(--ink-2);">
+                                    {{ b.commentary }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

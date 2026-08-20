@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Opponent Analysis — Cric Player Insights{% endblock %}
+{% block breadcrumb %}Opponent Intel{% endblock %}
+{% block nav_opponents %}active{% endblock %}
+
+{% block content %}
+<div class="search-card">
+    <div class="search-card-title">🎯 Opponent Analysis</div>
+    <div class="search-card-sub">Examine player performance splits across every opposing IPL franchise.</div>
+    <form method="POST">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-10">
+                <label class="form-label">Player Name</label>
+                <input list="players-dl" name="player" class="form-control" placeholder="Search player name..." value="{{ player or '' }}" required>
+                <datalist id="players-dl">{% for p in players %}<option value="{{ p }}">{% endfor %}</datalist>
+            </div>
+            <div class="col-lg-2">
+                <button class="btn btn-primary w-100" type="submit">Analyze</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if opponent_data %}
+    {% if opponent_data.batting is not none and not opponent_data.batting.empty %}
+    <div class="section">
+        <div class="section-header">
+            <div><p class="section-kicker">Batting Splits</p><h2 class="section-title">{{ player }} vs Each Team</h2></div>
+        </div>
+        <div class="table-responsive">
+            {{ opponent_data.batting.to_html(classes="table table-hover", index=False, border=0) | safe }}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if opponent_data.bowling is not none and not opponent_data.bowling.empty %}
+    <div class="section">
+        <div class="section-header">
+            <div><p class="section-kicker">Bowling Splits</p><h2 class="section-title">{{ player }} Bowling vs Each Team</h2></div>
+        </div>
+        <div class="table-responsive">
+            {{ opponent_data.bowling.to_html(classes="table table-hover", index=False, border=0) | safe }}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if (opponent_data.batting is none or opponent_data.batting.empty) and (opponent_data.bowling is none or opponent_data.bowling.empty) %}
+    <div class="alert alert-info">No opponent intelligence data found for {{ player }}.</div>
+    {% endif %}
+{% else %}
+<div class="alert alert-info">Select a player and click Analyze to view performance splits by opposing IPL franchise.</div>
+{% endif %}
+{% endblock %}

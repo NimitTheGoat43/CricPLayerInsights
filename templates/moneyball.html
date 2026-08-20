@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Moneyball ROI Engine — Cric Player Insights{% endblock %}
+{% block description %}Evaluate player contract auction values, cost-per-run/wicket impact, and bargain buy rankings.{% endblock %}
+{% block nav_moneyball %}active{% endblock %}
+{% block breadcrumb %}Moneyball ROI Engine{% endblock %}
+
+{% block content %}
+<section class="workspace fade-in-up">
+    <div class="hero-banner">
+        <div class="hero-eyebrow">Player Financial & Performance Valuation</div>
+        <h1 class="hero-title">💎 Moneyball ROI Engine</h1>
+        <p class="hero-subtitle">Evaluate player auction contract values, ROI rating per ₹ Crore spent, and discover top bargain buys in IPL history!</p>
+    </div>
+
+    <!-- PLAYER SALARY EVALUATOR FORM -->
+    <div class="search-card">
+        <div class="search-card-title">💰 Evaluate Player Auction Value</div>
+        <div class="search-card-sub">Enter any IPL player and their auction price to compute ROI rating score and value verdict.</div>
+        <form method="POST" class="analysis-form p-0" style="background:transparent;border:none;box-shadow:none;">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-6">
+                    <label class="form-label">Player Name</label>
+                    <input list="players-dl" name="player" class="form-control" value="{{ player or '' }}" placeholder="e.g. MS Dhoni, V Kohli, Jasprit Bumrah..." required>
+                </div>
+                <div class="col-lg-4">
+                    <label class="form-label">Auction Price (in ₹ Crores)</label>
+                    <input type="number" step="0.25" name="price" class="form-control" value="{{ price or 7.5 }}" min="0.20" max="30.0" required>
+                </div>
+                <div class="col-lg-2">
+                    <button class="btn btn-primary w-100" type="submit">Calculate ROI</button>
+                </div>
+            </div>
+            <datalist id="players-dl">
+                {% for p in players %}<option value="{{ p }}">{% endfor %}
+            </datalist>
+        </form>
+    </div>
+</section>
+
+{% if roi_data %}
+<section class="section fade-in-up mt-4">
+    <!-- ROI RESULT HERO CARD -->
+    <div class="hero-banner mb-4" style="background:linear-gradient(135deg, rgba(6,182,212,0.12), rgba(16,185,129,0.12));border:2px solid var(--brand);">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-8">
+                <div class="hero-eyebrow mb-1">Contract Valuation Summary</div>
+                <h2 style="font-size:32px;font-weight:900;margin-bottom:8px;color:var(--ink);">
+                    {{ roi_data.player }} (₹ {{ roi_data.price_crores }} Cr)
+                </h2>
+                <div class="badge-win mb-3" style="font-size:15px;padding:6px 16px;">
+                    {{ roi_data.verdict }}
+                </div>
+                <p style="font-size:14px;color:var(--ink-2);margin:0;">
+                    {{ roi_data.recommendation }}
+                </p>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Moneyball ROI Score</div>
+                <div style="font-family:'Space Grotesk',sans-serif;font-size:54px;font-weight:900;color:var(--brand);line-height:1;">
+                    {{ roi_data.roi_score }} <span style="font-size:20px;color:var(--muted);">/100</span>
+                </div>
+                <div style="font-size:12px;color:var(--muted);margin-top:4px;">Cost per Impact Pt: {{ roi_data.cost_per_point }} Cr</div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if moneyball_data %}
+<!-- BARGAIN BUYS LEADERBOARDS -->
+<div class="row g-4 mt-2">
+    <div class="col-lg-6">
+        <div class="section">
+            <div class="section-header">
+                <div>
+                    <p class="section-kicker">Leaderboard</p>
+                    <h2 class="section-title">💎 Highest Impact Batters (Moneyball Value)</h2>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Batter</th>
+                            <th>Runs</th>
+                            <th>Strike Rate</th>
+                            <th>Sixes</th>
+                            <th>Value Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for b in moneyball_data.bargain_batters %}
+                        <tr>
+                            <td class="fw-bold" style="text-align:left!important;">{{ b.player }}</td>
+                            <td>{{ b.runs }}</td>
+                            <td style="color:var(--brand);font-weight:700;">{{ b.sr }}</td>
+                            <td style="color:var(--warning);font-weight:700;">{{ b.sixes }}</td>
+                            <td style="color:var(--success);font-weight:800;">{{ b.value_score }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="section">
+            <div class="section-header">
+                <div>
+                    <p class="section-kicker">Leaderboard</p>
+                    <h2 class="section-title">🎯 Highest Impact Bowlers (Moneyball Value)</h2>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Bowler</th>
+                            <th>Wickets</th>
+                            <th>Economy</th>
+                            <th>Value Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for w in moneyball_data.bargain_bowlers %}
+                        <tr>
+                            <td class="fw-bold" style="text-align:left!important;">{{ w.player }}</td>
+                            <td style="color:var(--success);font-weight:800;">{{ w.wickets }}</td>
+                            <td style="color:var(--brand-2);font-weight:700;">{{ w.econ }}</td>
+                            <td style="color:var(--success);font-weight:800;">{{ w.value_score }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,15 +1,29 @@
-# Python
-__pycache__/
-*.py[cod]
-
-# Virtual Environments
+# Python virtual environment
 .venv/
 venv/
 env/
+ENV/
 
-# VS Code
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# IDE & Editor files
 .vscode/
+.idea/
+*.swp
+*.swo
 
-# OS Files
+# OS files
 .DS_Store
 Thumbs.db
+
+# Temporary & script outputs
+tempCodeRunnerFile.py
+ok
+.agents/
+
+# Nested duplicate project dir if present
+CricPlayerInsights/

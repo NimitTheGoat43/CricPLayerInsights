@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Cric Player Insights{% endblock %}</title>
+    <meta name="description" content="{% block description %}Professional IPL cricket analytics platform.{% endblock %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/theme.css') }}?v=5" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/theme.js') }}?v=5"></script>
+    {% block head %}{% endblock %}
+</head>
+<body>
+<div class="app-shell">
+    <button class="mobile-menu-btn" id="mobile-menu-btn" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <a href="/" class="sidebar-brand">
+            <div class="sidebar-brand-icon">CI</div>
+            <div class="sidebar-brand-text">
+                <span class="sidebar-brand-title">CricInsights</span>
+                <span class="sidebar-brand-sub">IPL Analytics</span>
+            </div>
+        </a>
+
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-label">Analytics</div>
+            <a href="/" class="sidebar-link {% block nav_dashboard %}{% endblock %}">
+                <span class="nav-icon">DB</span> Dashboard
+            </a>
+            <a href="/compare" class="sidebar-link {% block nav_compare %}{% endblock %}">
+                <span class="nav-icon">VS</span> Compare Players
+            </a>
+            <a href="/matchup" class="sidebar-link {% block nav_matchup %}{% endblock %}">
+                <span class="nav-icon">H2</span> Head-to-Head
+            </a>
+            <a href="/opponents" class="sidebar-link {% block nav_opponents %}{% endblock %}">
+                <span class="nav-icon">OI</span> Opponent Intel
+            </a>
+            <a href="/insights" class="sidebar-link {% block nav_insights %}{% endblock %}">
+                <span class="nav-icon">PI</span> Player Insights
+            </a>
+            <a href="/predict" class="sidebar-link {% block nav_predict %}{% endblock %}">
+                <span class="nav-icon">PR</span> Predictor
+            </a>
+            <a href="/simulator" class="sidebar-link {% block nav_simulator %}{% endblock %}">
+                <span class="nav-icon">SM</span> Match Simulator
+            </a>
+            <a href="/clutch" class="sidebar-link {% block nav_clutch %}{% endblock %}">
+                <span class="nav-icon">CI</span> Clutch Index
+            </a>
+
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-section-label">Data</div>
+            <a href="/leaderboards" class="sidebar-link {% block nav_leaderboards %}{% endblock %}">
+                <span class="nav-icon">LB</span> Leaderboards
+            </a>
+            <a href="/teams" class="sidebar-link {% block nav_teams %}{% endblock %}">
+                <span class="nav-icon">TM</span> Team Stats
+            </a>
+            <a href="/season-comparison" class="sidebar-link {% block nav_season %}{% endblock %}">
+                <span class="nav-icon">YR</span> Season Compare
+            </a>
+            <a href="/dismissals" class="sidebar-link {% block nav_dismissals %}{% endblock %}">
+                <span class="nav-icon">WK</span> Dismissals
+            </a>
+            <a href="/statistics" class="sidebar-link {% block nav_statistics %}{% endblock %}">
+                <span class="nav-icon">ST</span> Statistics
+            </a>
+
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-section-label">Tools</div>
+            <a href="/reports" class="sidebar-link {% block nav_reports %}{% endblock %}">
+                <span class="nav-icon">EX</span> Reports
+            </a>
+            <a href="/search" class="sidebar-link {% block nav_search %}{% endblock %}">
+                <span class="nav-icon">SR</span> Search
+            </a>
+
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-section-label">Special Features</div>
+            <a href="/super-over" class="sidebar-link {% block nav_super_over %}{% endblock %}">
+                <span class="nav-icon">SO</span> Super Over
+            </a>
+            <a href="/moneyball" class="sidebar-link {% block nav_moneyball %}{% endblock %}">
+                <span class="nav-icon">MB</span> Moneyball ROI
+            </a>
+            <a href="/kryptonite" class="sidebar-link {% block nav_kryptonite %}{% endblock %}">
+                <span class="nav-icon">KR</span> Kryptonite Radar
+            </a>
+            <a href="/venue-lab" class="sidebar-link {% block nav_venue_lab %}{% endblock %}">
+                <span class="nav-icon">PL</span> Pitch Lab
+            </a>
+            <a href="/squad-builder" class="sidebar-link {% block nav_squad_builder %}{% endblock %}">
+                <span class="nav-icon">XI</span> Dream XI Optimizer
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="sidebar-theme-btn" id="theme-toggle" aria-label="Toggle theme">
+                <span>Appearance</span>
+                <span class="theme-pill" id="theme-toggle-icon">Light</span>
+            </button>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="topbar-brand">
+                    <div class="topbar-brand-mark">CI</div>
+                    <div>
+                        <div class="topbar-brand-title">CricInsights</div>
+                        <div class="topbar-brand-sub">IPL analytics suite</div>
+                    </div>
+                </div>
+                <div class="topbar-breadcrumb">Analytics / <span>{% block breadcrumb %}Dashboard{% endblock %}</span></div>
+            </div>
+            <div class="topbar-right">
+                <form action="/search" method="GET" class="topbar-search">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input type="text" name="q" placeholder="Search players..." autocomplete="off">
+                </form>
+                <button class="topbar-btn" id="theme-toggle-topbar" type="button" aria-label="Toggle theme">☀︎</button>
+            </div>
+        </header>
+
+        <main class="page-content" role="main">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

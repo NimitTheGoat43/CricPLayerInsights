@@ -1,172 +1,237 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Head-to-Head - Cric Player Insights</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: #f5f7fa;
-            font-family: Segoe UI, sans-serif;
-        }
-        .navbar {
-            background: #111827;
-        }
-        .navbar-brand {
-            color: white !important;
-            font-size: 28px;
-            font-weight: 700;
-        }
-        .hero {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            margin-top: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-        }
-        .stat-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #2563eb;
-        }
-        .section-title {
-            margin-top: 40px;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-        .nav-links {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-        }
-        .nav-links a {
-            display: inline-block;
-            margin-right: 15px;
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .nav-links a:hover {
-            text-decoration: underline;
-        }
-    </style>
-    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
-</head>
-<body>
+{% extends "base.html" %}
 
-<nav class="navbar navbar-expand-lg">
-    <div class="container">
-        <a href="/" class="navbar-brand">
-            Cric Player Insights
-        </a>
-    </div>
-</nav>
+{% block title %}Matchup Analysis - Cric Player Insights{% endblock %}
+{% block description %}Compare batter vs bowler and team matchup performance for IPL analysis.{% endblock %}
+{% block nav_matchup %}active{% endblock %}
+{% block breadcrumb %}Head-to-Head{% endblock %}
 
-<div class="container">
-    <div class="hero">
-        <h1>Head-to-Head Analysis</h1>
-        <p class="text-muted">View specific batter vs bowler matchups and team-wise performance</p>
-        
-        <form method="POST">
-            <div class="row mt-4">
-                <div class="col-md-5">
-                    <label class="form-label">Batter</label>
-                    <input
-                        list="batters"
-                        name="batter"
-                        class="form-control form-control-lg"
-                        placeholder="Select Batter"
-                        required
-                    >
-                    <datalist id="batters">
-                        {% for player in players %}
-                        <option value="{{player}}">
-                        {% endfor %}
-                    </datalist>
-                </div>
-                <div class="col-md-2 text-center">
-                    <h5 style="margin-top: 32px;">vs</h5>
-                </div>
-                <div class="col-md-5">
-                    <label class="form-label">Bowler</label>
-                    <input
-                        list="bowlers"
-                        name="bowler"
-                        class="form-control form-control-lg"
-                        placeholder="Select Bowler"
-                        required
-                    >
-                    <datalist id="bowlers">
-                        {% for player in players %}
-                        <option value="{{player}}">
-                        {% endfor %}
-                    </datalist>
-                </div>
-            </div>
-            <div class="row mt-3">
-                <div class="col-md-12">
-                    <button class="btn btn-dark btn-lg w-100" type="submit">Analyze Matchup</button>
-                </div>
-            </div>
-        </form>
-
-        <div class="nav-links">
-            <a href="/">Dashboard</a>
-            <a href="/compare">Compare Players</a>
-            <a href="/insights">Player Insights</a>
+{% block content %}
+<section class="workspace fade-in-up">
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Matchup</p>
+            <h1 class="section-title">Matchup Analysis</h1>
+            <p class="hero-copy">View specific batter vs bowler head-to-head matchups, or compare player performance against opposition teams.</p>
         </div>
     </div>
 
-    {% if h2h_data %}
+    <form method="POST" class="analysis-form">
+        <datalist id="all-players">
+            {% for p in players %}
+            <option value="{{ p }}">
+            {% endfor %}
+        </datalist>
 
-    <h2 class="section-title">{{ h2h_data.batter }} vs {{ h2h_data.bowler }}</h2>
-
-    <div class="row">
-        <div class="col-md-3">
-            <div class="card p-4">
-                <h5>Runs</h5>
-                <div class="stat-value">{{ h2h_data.runs }}</div>
+        <div class="row g-3">
+            <div class="col-md-12">
+                <label class="form-label">Matchup Mode</label>
+                <select name="matchup_type" id="matchup_type_select" class="form-select">
+                    <option value="player_vs_player" {% if matchup_type == 'player_vs_player' %}selected{% endif %}>Batter vs Bowler (PVP)</option>
+                    <option value="batter_vs_team" {% if matchup_type == 'batter_vs_team' %}selected{% endif %}>Batter vs Team</option>
+                    <option value="bowler_vs_team" {% if matchup_type == 'bowler_vs_team' %}selected{% endif %}>Bowler vs Team</option>
+                </select>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card p-4">
-                <h5>Balls</h5>
-                <div class="stat-value">{{ h2h_data.balls }}</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card p-4">
-                <h5>Strike Rate</h5>
-                <div class="stat-value">{{ h2h_data.sr }}</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card p-4">
-                <h5>Dismissals</h5>
-                <div class="stat-value">{{ h2h_data.dismissals }}</div>
-            </div>
-        </div>
-    </div>
 
-    <h3 class="section-title">Key Stats</h3>
-    <div class="card p-4">
-        <ul class="list-unstyled">
-            <li><strong>Wickets (by {{ h2h_data.bowler }}):</strong> {{ h2h_data.wickets }}</li>
-            <li><strong>Matchups:</strong> {{ h2h_data.matchups }} overs</li>
-        </ul>
-    </div>
+        <div id="pvp-fields" class="row g-3 mt-2" style="display: none;">
+            <div class="col-md-5">
+                <label class="form-label">Batter</label>
+                <input list="all-players" name="batter" id="pvp-batter" class="form-control" placeholder="Search batter name..." value="{{ batter or '' }}">
+            </div>
+            <div class="col-md-2 text-center align-self-end">
+                <h4 class="mb-3">VS</h4>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Bowler</label>
+                <input list="all-players" name="bowler" id="pvp-bowler" class="form-control" placeholder="Search bowler name..." value="{{ bowler or '' }}">
+            </div>
+        </div>
 
-    {% elif batter and bowler %}
-    <div class="alert alert-info" role="alert">
-        No matchup data available for {{ batter }} vs {{ bowler }}
-    </div>
+        <div id="batter-team-fields" class="row g-3 mt-2" style="display: none;">
+            <div class="col-md-6">
+                <label class="form-label">Batter</label>
+                <input list="all-players" name="batter" id="bvt-batter" class="form-control" placeholder="Search batter name..." value="{{ batter or '' }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Opponent Team</label>
+                <select name="team" id="bvt-team" class="form-select">
+                    {% for t in teams %}
+                    <option value="{{ t }}" {% if team == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div id="bowler-team-fields" class="row g-3 mt-2" style="display: none;">
+            <div class="col-md-6">
+                <label class="form-label">Bowler</label>
+                <input list="all-players" name="bowler" id="wvt-bowler" class="form-control" placeholder="Search bowler name..." value="{{ bowler or '' }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Opponent Team</label>
+                <select name="team" id="wvt-team" class="form-select">
+                    {% for t in teams %}
+                    <option value="{{ t }}" {% if team == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <button class="btn btn-primary w-100" type="submit">Analyze Matchup</button>
+            </div>
+        </div>
+    </form>
+</section>
+
+{% if h2h_data %}
+    {% if matchup_type == 'player_vs_player' %}
+    <section class="section fade-in-up">
+        <div class="section-header">
+            <div>
+                <p class="section-kicker">Head-to-Head</p>
+                <h2 class="section-title">{{ h2h_data.batter }} vs {{ h2h_data.bowler }}</h2>
+            </div>
+            {% if h2h_data.winner %}
+            <div>
+                {% if h2h_data.winner != 'Even Battle' %}
+                <span class="badge-win" data-player="{{ h2h_data.winner }}" style="font-size:15px!important;padding:8px 16px!important;">🏆 Winner: {{ h2h_data.winner }}</span>
+                {% else %}
+                <span class="badge-win" style="font-size:14px!important;padding:6px 12px!important;background:rgba(255,255,255,0.08)!important;color:var(--ink)!important;">🤝 Even Battle</span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <p class="metric-label">Runs Scored</p>
+                <div class="metric-value">{{ h2h_data.runs }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Balls Faced</p>
+                <div class="metric-value">{{ h2h_data.balls }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Strike Rate</p>
+                <div class="metric-value">{{ h2h_data.sr }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Dismissals</p>
+                <div class="metric-value">{{ h2h_data.dismissals }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Wickets Taken</p>
+                <div class="metric-value">{{ h2h_data.wickets }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Matchups (Overs)</p>
+                <div class="metric-value">{{ h2h_data.matchups }}</div>
+            </div>
+        </div>
+    </section>
+
+    {% elif matchup_type == 'batter_vs_team' %}
+    <section class="section fade-in-up">
+        <div class="section-header">
+            <div>
+                <p class="section-kicker">Batter vs Team</p>
+                <h2 class="section-title">{{ h2h_data.player }} vs {{ h2h_data.team }}</h2>
+            </div>
+        </div>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <p class="metric-label">Runs</p>
+                <div class="metric-value">{{ h2h_data.runs }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Balls Faced</p>
+                <div class="metric-value">{{ h2h_data.balls }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Strike Rate</p>
+                <div class="metric-value">{{ h2h_data.sr }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Matches</p>
+                <div class="metric-value">{{ h2h_data.matches }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Dismissals</p>
+                <div class="metric-value">{{ h2h_data.outs }}</div>
+            </div>
+        </div>
+    </section>
+    {% elif matchup_type == 'bowler_vs_team' %}
+    <section class="section fade-in-up">
+        <div class="section-header">
+            <div>
+                <p class="section-kicker">Bowler vs Team</p>
+                <h2 class="section-title">{{ h2h_data.player }} vs {{ h2h_data.team }}</h2>
+            </div>
+        </div>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <p class="metric-label">Wickets</p>
+                <div class="metric-value">{{ h2h_data.wickets }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Overs</p>
+                <div class="metric-value">{{ h2h_data.overs }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Economy</p>
+                <div class="metric-value">{{ h2h_data.economy }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Runs Conceded</p>
+                <div class="metric-value">{{ h2h_data.runs }}</div>
+            </div>
+            <div class="metric-card">
+                <p class="metric-label">Matches</p>
+                <div class="metric-value">{{ h2h_data.matches }}</div>
+            </div>
+        </div>
+    </section>
     {% endif %}
-
+{% elif (batter and bowler) or (batter and team) or (bowler and team) %}
+<div class="alert alert-info" role="alert">
+    No matchup data found for the selected combination. Try different players or teams.
 </div>
+{% endif %}
+{% endblock %}
 
-</body>
-</html>
+{% block scripts %}
+<script>
+    function updateFormFields() {
+        const mType = document.getElementById("matchup_type_select").value;
+        const pvpFields = document.getElementById("pvp-fields");
+        const batterTeamFields = document.getElementById("batter-team-fields");
+        const bowlerTeamFields = document.getElementById("bowler-team-fields");
+
+        [pvpFields, batterTeamFields, bowlerTeamFields].forEach(el => {
+            el.style.display = "none";
+            el.querySelectorAll("input, select").forEach(inp => inp.disabled = true);
+        });
+
+        let activeSection;
+        if (mType === "player_vs_player") {
+            activeSection = pvpFields;
+        } else if (mType === "batter_vs_team") {
+            activeSection = batterTeamFields;
+        } else if (mType === "bowler_vs_team") {
+            activeSection = bowlerTeamFields;
+        }
+
+        if (activeSection) {
+            activeSection.style.display = "flex";
+            activeSection.querySelectorAll("input, select").forEach(inp => inp.disabled = false);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("matchup_type_select").addEventListener("change", updateFormFields);
+        updateFormFields();
+    });
+</script>
+{% endblock %}

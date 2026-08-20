@@ -1,736 +1,335 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cric Player Insights</title>
+{% block title %}Cric Player Insights - IPL Intelligence Console{% endblock %}
+{% block description %}Professional IPL cricket analytics: player reports, head-to-head matchups, form insights and leaderboards.{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
 
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet">
-
-    <style>
-        :root{
-            --bg:#f4f6f8;
-            --surface:#ffffff;
-            --surface-soft:#f8fafc;
-            --ink:#101828;
-            --muted:#667085;
-            --line:#e4e7ec;
-            --brand:#0f766e;
-            --brand-dark:#115e59;
-            --nav:#111827;
-        }
-
-        *{
-            letter-spacing:0;
-        }
-
-        body{
-            margin:0;
-            background:var(--bg);
-            color:var(--ink);
-            font-family:"Segoe UI", Arial, sans-serif;
-            font-size:15px;
-        }
-
-        .topbar{
-            background:var(--nav);
-            border-bottom:1px solid rgba(255,255,255,0.08);
-        }
-
-        .topbar-inner{
-            max-width:1180px;
-            margin:0 auto;
-            padding:16px 20px;
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-            gap:16px;
-        }
-
-        .brand{
-            color:#ffffff;
-            font-size:22px;
-            font-weight:700;
-            text-decoration:none;
-        }
-
-        .brand-subtitle{
-            color:#cbd5e1;
-            font-size:13px;
-        }
-
-        .shell{
-            max-width:1180px;
-            margin:0 auto;
-            padding:28px 20px 48px;
-        }
-
-        .workspace{
-            background:var(--surface);
-            border:1px solid var(--line);
-            border-radius:8px;
-            padding:28px;
-        }
-
-        .hero-title{
-            font-size:30px;
-            line-height:1.2;
-            font-weight:750;
-            margin:0 0 8px;
-        }
-
-        .hero-copy{
-            margin:0;
-            color:var(--muted);
-        }
-
-        .analysis-form{
-            margin-top:24px;
-        }
-
-        .form-control,
-        .form-select{
-            border-color:#d0d5dd;
-            border-radius:8px;
-            min-height:48px;
-            box-shadow:none;
-        }
-
-        .form-control:focus,
-        .form-select:focus{
-            border-color:var(--brand);
-            box-shadow:0 0 0 3px rgba(15,118,110,0.12);
-        }
-
-        .btn-primary-action{
-            min-height:48px;
-            width:100%;
-            border:0;
-            border-radius:8px;
-            background:var(--brand);
-            color:#ffffff;
-            font-weight:700;
-        }
-
-        .btn-primary-action:hover{
-            background:var(--brand-dark);
-            color:#ffffff;
-        }
-
-        .nav-menu{
-            display:flex;
-            flex-wrap:wrap;
-            gap:8px;
-            margin-top:22px;
-            padding-top:22px;
-            border-top:1px solid var(--line);
-        }
-
-        .nav-menu a{
-            color:#344054;
-            background:var(--surface-soft);
-            border:1px solid var(--line);
-            border-radius:999px;
-            padding:8px 14px;
-            font-size:14px;
-            font-weight:600;
-            text-decoration:none;
-        }
-
-        .nav-menu a:hover{
-            color:var(--brand-dark);
-            border-color:#99f6e4;
-            background:#f0fdfa;
-        }
-
-        .section{
-            margin-top:28px;
-        }
-
-        .section-header{
-            display:flex;
-            align-items:flex-end;
-            justify-content:space-between;
-            gap:16px;
-            margin-bottom:14px;
-        }
-
-        .section-title{
-            margin:0;
-            font-size:21px;
-            font-weight:750;
-        }
-
-        .section-kicker{
-            margin:0 0 4px;
-            color:var(--brand-dark);
-            font-size:12px;
-            font-weight:800;
-            text-transform:uppercase;
-        }
-
-        .section-note{
-            margin:0;
-            color:var(--muted);
-            font-size:14px;
-        }
-
-        .panel{
-            background:var(--surface);
-            border:1px solid var(--line);
-            border-radius:8px;
-            padding:22px;
-        }
-
-        .panel-accent{
-            border-top:4px solid var(--brand);
-        }
-
-        .score-badge{
-            display:inline-flex;
-            align-items:center;
-            gap:8px;
-            padding:9px 13px;
-            border-radius:999px;
-            background:#ecfdf3;
-            color:#027a48;
-            border:1px solid #abefc6;
-            font-weight:800;
-            white-space:nowrap;
-        }
-
-        .metric-grid{
-            display:grid;
-            grid-template-columns:repeat(4,minmax(0,1fr));
-            gap:12px;
-        }
-
-        .metric-grid.six{
-            grid-template-columns:repeat(6,minmax(0,1fr));
-        }
-
-        .metric-card{
-            background:var(--surface);
-            border:1px solid var(--line);
-            border-radius:8px;
-            padding:16px;
-            min-height:104px;
-        }
-
-        .metric-label{
-            margin:0 0 10px;
-            color:var(--muted);
-            font-size:12px;
-            font-weight:800;
-            text-transform:uppercase;
-        }
-
-        .metric-value{
-            font-size:28px;
-            line-height:1.05;
-            font-weight:800;
-            color:var(--ink);
-        }
-
-        .metric-footnote{
-            margin-top:8px;
-            color:var(--muted);
-            font-size:13px;
-        }
-
-        .insight-column{
-            background:var(--surface-soft);
-            border:1px solid var(--line);
-            border-radius:8px;
-            padding:18px;
-            height:100%;
-        }
-
-        .insight-column h5{
-            margin:0 0 12px;
-            font-size:15px;
-            font-weight:800;
-        }
-
-        .insight-list{
-            margin:0;
-            padding-left:18px;
-            color:#344054;
-        }
-
-        .insight-list li{
-            margin-bottom:8px;
-        }
-
-        .data-block{
-            margin-top:22px;
-        }
-
-        .data-title{
-            margin:0 0 10px;
-            font-size:17px;
-            font-weight:750;
-        }
-
-        .table-responsive{
-            background:var(--surface);
-            border:1px solid var(--line);
-            border-radius:8px;
-            overflow:hidden;
-        }
-
-        .table{
-            margin-bottom:0;
-            font-size:14px;
-        }
-
-        .table th{
-            background:#f8fafc;
-            color:#344054;
-            border-bottom:1px solid var(--line);
-            text-align:left;
-            font-size:12px;
-            text-transform:uppercase;
-        }
-
-        .table td{
-            color:#344054;
-            vertical-align:middle;
-        }
-
-        .table-bordered>:not(caption)>*>*{
-            border-color:var(--line);
-        }
-
-        .table-striped>tbody>tr:nth-of-type(odd)>*{
-            --bs-table-bg-type:#fcfcfd;
-        }
-
-        @media (max-width: 992px){
-            .metric-grid,
-            .metric-grid.six{
-                grid-template-columns:repeat(2,minmax(0,1fr));
-            }
-        }
-
-        @media (max-width: 576px){
-            .topbar-inner,
-            .shell{
-                padding-left:14px;
-                padding-right:14px;
-            }
-
-            .workspace,
-            .panel{
-                padding:18px;
-            }
-
-            .hero-title{
-                font-size:24px;
-            }
-
-            .metric-grid,
-            .metric-grid.six{
-                grid-template-columns:1fr;
-            }
-        }
-    </style>
-    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
-</head>
-
-<body>
-    <header class="topbar">
-        <div class="topbar-inner">
-            <a href="/" class="brand">Cric Player Insights</a>
-            <div class="brand-subtitle">IPL performance intelligence dashboard</div>
+{% block content %}
+<div class="hero-banner fade-in-up">
+    <div class="hero-eyebrow">Live Analytics Platform</div>
+    <h1 class="hero-title">
+        IPL Player <span class="gradient-text">Intelligence</span> Console
+    </h1>
+    <p class="hero-subtitle">
+        Deep-dive into ball-by-ball IPL data. Explore batting and bowling profiles,
+        head-to-head matchups, form curves, and tactical insights in one focused workspace.
+    </p>
+    <div class="hero-stats-bar">
+        <div class="hero-stat">
+            <span class="hero-stat-value">{{ players|length }}</span>
+            <span class="hero-stat-label">Players</span>
         </div>
-    </header>
+        <div class="hero-stat-sep"></div>
+        <div class="hero-stat">
+            <span class="hero-stat-value">{{ seasons|length - 1 }}</span>
+            <span class="hero-stat-label">Seasons</span>
+        </div>
+        <div class="hero-stat-sep"></div>
+        <div class="hero-stat">
+            <span class="hero-stat-value">13</span>
+            <span class="hero-stat-label">Analytics Tools</span>
+        </div>
+        <div class="hero-stat-sep"></div>
+        <div class="hero-stat">
+            <span class="hero-stat-value">Ready</span>
+            <span class="hero-stat-label"><span class="status-dot green" style="margin-right:4px;"></span>Status</span>
+        </div>
+    </div>
+</div>
 
-    <main class="shell">
-        <section class="workspace">
-            <div>
-                <h1 class="hero-title">Player Intelligence Console</h1>
-                <p class="hero-copy">
-                    Search an IPL player and review role classification, phase performance, matchup risks, and tactical indicators.
-                </p>
+<div class="search-card fade-in-up fade-in-up-1">
+    <div class="search-card-title">Player Intelligence Search</div>
+    <div class="search-card-sub">Select a player and season to generate a complete batting and bowling report.</div>
+    <form method="POST" id="main-search-form">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-6">
+                <label class="form-label">Player Name</label>
+                <input
+                    list="players-dl"
+                    name="player"
+                    class="form-control"
+                    placeholder="e.g. Virat Kohli, MS Dhoni..."
+                    required
+                    autocomplete="off"
+                    id="player-input">
+                <datalist id="players-dl">
+                    {% for p in players %}
+                    <option value="{{ p }}">
+                    {% endfor %}
+                </datalist>
             </div>
-
-            <form method="POST" class="analysis-form">
-                <div class="row g-3 align-items-end">
-                    <div class="col-lg-7">
-                        <label class="form-label fw-semibold">Player</label>
-                        <input
-                            list="players"
-                            name="player"
-                            class="form-control"
-                            placeholder="Search player name"
-                            required>
-
-                        <datalist id="players">
-                            {% for player in players %}
-                            <option value="{{player}}">
-                            {% endfor %}
-                        </datalist>
-                    </div>
-
-                    <div class="col-lg-3">
-                        <label class="form-label fw-semibold">Season Scope</label>
-                        <select name="season" class="form-select">
-                            {% for season in seasons %}
-                            <option
-                                value="{{season}}"
-                                {% if season == selected_season %}selected{% endif %}>
-                                {{season}}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <div class="col-lg-2">
-                        <button class="btn-primary-action" type="submit">
-                            Analyze
-                        </button>
-                    </div>
-                </div>
-            </form>
-
-            <nav class="nav-menu">
-                <a href="/compare">Compare Players</a>
-                <a href="/matchup">Head-to-Head</a>
-                <a href="/insights">Player Insights</a>
-                <a href="/leaderboards">Leaderboards</a>
-                <a href="/teams">Teams</a>
-                <a href="/season-comparison">Season Comparison</a>
-                <a href="/dismissals">Dismissals</a>
-                <a href="/statistics">Statistics</a>
-            </nav>
-        </section>
-
-        {% if advanced_report %}
-        <section class="section">
-            <div class="section-header">
-                <div>
-                    <p class="section-kicker">Explainable Analysis</p>
-                    <h2 class="section-title">{{ advanced_report.player }} - {{ advanced_report.role }}</h2>
-                    <p class="section-note">{{ advanced_report.explanation }}</p>
-                </div>
-                <span class="score-badge">
-                    {{ advanced_report.overall_level }}: {{ advanced_report.overall_score }}
-                </span>
+            <div class="col-lg-4">
+                <label class="form-label">Season Scope</label>
+                <select name="season" class="form-select" id="season-select">
+                    {% for season in seasons %}
+                    <option value="{{ season }}" {% if season == selected_season %}selected{% endif %}>
+                        {{ season }}
+                    </option>
+                    {% endfor %}
+                </select>
             </div>
-
-            <div class="panel panel-accent">
-                <div class="metric-grid">
-                    {% if advanced_report.batting %}
-                    <div class="metric-card">
-                        <p class="metric-label">Batting Quality</p>
-                        <div class="metric-value">{{ advanced_report.batting.score }}</div>
-                        <div class="metric-footnote">
-                            {{ advanced_report.batting.level }} | SR {{ advanced_report.batting.strike_rate }}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if advanced_report.bowling %}
-                    <div class="metric-card">
-                        <p class="metric-label">Bowling Quality</p>
-                        <div class="metric-value">{{ advanced_report.bowling.score }}</div>
-                        <div class="metric-footnote">
-                            {{ advanced_report.bowling.level }} | Econ {{ advanced_report.bowling.economy }}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if advanced_report.batting %}
-                    <div class="metric-card">
-                        <p class="metric-label">Batting Average</p>
-                        <div class="metric-value">{{ advanced_report.batting.average }}</div>
-                        <div class="metric-footnote">Dismissal resistance</div>
-                    </div>
-                    {% endif %}
-
-                    {% if advanced_report.bowling %}
-                    <div class="metric-card">
-                        <p class="metric-label">Dot Ball Rate</p>
-                        <div class="metric-value">{{ advanced_report.bowling.dot_rate }}%</div>
-                        <div class="metric-footnote">Pressure creation</div>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="row g-3 mt-2">
-                    <div class="col-lg-4">
-                        <div class="insight-column">
-                            <h5>Strengths</h5>
-                            <ul class="insight-list">
-                                {% for item in advanced_report.strengths %}
-                                <li>{{ item }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4">
-                        <div class="insight-column">
-                            <h5>Risks</h5>
-                            <ul class="insight-list">
-                                {% for item in advanced_report.risks %}
-                                <li>{{ item }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4">
-                        <div class="insight-column">
-                            <h5>Tactical Use</h5>
-                            <ul class="insight-list">
-                                {% for item in advanced_report.recommendations %}
-                                <li>{{ item }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="data-block">
-                    <h3 class="data-title">Phase Edge</h3>
-                    <div class="table-responsive">
-                        {{
-                        advanced_report.phase_edge.to_html(
-                            classes="table table-striped table-hover table-bordered",
-                            index=False,
-                            border=0
-                        ) | safe
-                        }}
-                    </div>
-                </div>
+            <div class="col-lg-2">
+                <button class="btn btn-primary w-100" type="submit" id="analyze-btn">Analyze</button>
             </div>
-        </section>
+        </div>
+    </form>
+</div>
+
+{% if not batter_report and not bowler_report %}
+<div class="quick-actions fade-in-up fade-in-up-2">
+    <a href="/compare" class="quick-card qc-1">
+        <div class="quick-card-icon">VS</div>
+        <div>
+            <div class="quick-card-title">Compare Players</div>
+            <div class="quick-card-desc">Side-by-side batting and bowling stats for any two players</div>
+        </div>
+    </a>
+    <a href="/matchup" class="quick-card qc-2">
+        <div class="quick-card-icon">H2</div>
+        <div>
+            <div class="quick-card-title">Head-to-Head</div>
+            <div class="quick-card-desc">Batter vs bowler matchup data with dismissal breakdown</div>
+        </div>
+    </a>
+    <a href="/leaderboards" class="quick-card qc-3">
+        <div class="quick-card-icon">LB</div>
+        <div>
+            <div class="quick-card-title">Leaderboards</div>
+            <div class="quick-card-desc">Top run-scorers, wicket-takers, economy leaders and more</div>
+        </div>
+    </a>
+    <a href="/insights" class="quick-card qc-4">
+        <div class="quick-card-icon">PI</div>
+        <div>
+            <div class="quick-card-title">Player Insights</div>
+            <div class="quick-card-desc">Recent form, consistency scores and milestone tracking</div>
+        </div>
+    </a>
+    <a href="/opponents" class="quick-card qc-5">
+        <div class="quick-card-icon">OI</div>
+        <div>
+            <div class="quick-card-title">Opponent Intel</div>
+            <div class="quick-card-desc">Team-by-team performance breakdown for any player</div>
+        </div>
+    </a>
+    <a href="/teams" class="quick-card qc-6">
+        <div class="quick-card-icon">TM</div>
+        <div>
+            <div class="quick-card-title">Team Stats</div>
+            <div class="quick-card-desc">Batting and bowling aggregates for all IPL franchises</div>
+        </div>
+    </a>
+    <a href="/statistics" class="quick-card qc-7">
+        <div class="quick-card-icon">ST</div>
+        <div>
+            <div class="quick-card-title">Statistics</div>
+            <div class="quick-card-desc">Highest scoring matches, venues and season trends</div>
+        </div>
+    </a>
+    <a href="/season-comparison" class="quick-card qc-9">
+        <div class="quick-card-icon">YR</div>
+        <div>
+            <div class="quick-card-title">Season Compare</div>
+            <div class="quick-card-desc">Year-over-year player performance evolution</div>
+        </div>
+    </a>
+    <a href="/predict" class="quick-card qc-8">
+        <div class="quick-card-icon">PR</div>
+        <div>
+            <div class="quick-card-title">Performance Predictor</div>
+            <div class="quick-card-desc">AI forecast of runs, wickets, and impact for upcoming matches</div>
+        </div>
+    </a>
+    <a href="/simulator" class="quick-card qc-1">
+        <div class="quick-card-icon">SM</div>
+        <div>
+            <div class="quick-card-title">Match Impact Simulator</div>
+            <div class="quick-card-desc">Test player win contribution under custom required run rates</div>
+        </div>
+    </a>
+    <a href="/clutch" class="quick-card qc-2">
+        <div class="quick-card-icon">CI</div>
+        <div>
+            <div class="quick-card-title">Clutch & Pressure Index</div>
+            <div class="quick-card-desc">Death over efficiency (16-20) and high-pressure ratings</div>
+        </div>
+    </a>
+</div>
+{% endif %}
+
+{% if advanced_report %}
+<div class="section fade-in-up">
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Intelligence Report</p>
+            <h2 class="section-title">{{ advanced_report.player }} - {{ advanced_report.role }}</h2>
+            <p class="section-note">{{ advanced_report.explanation }}</p>
+        </div>
+        <span class="score-badge">{{ advanced_report.overall_level }}: {{ advanced_report.overall_score }}</span>
+    </div>
+
+    <div class="metric-grid">
+        {% if advanced_report.batting %}
+        <div class="metric-card">
+            <p class="metric-label">Batting Quality</p>
+            <div class="metric-value">{{ advanced_report.batting.score }}</div>
+            <div class="metric-footnote">{{ advanced_report.batting.level }} / SR {{ advanced_report.batting.strike_rate }}</div>
+        </div>
+        <div class="metric-card">
+            <p class="metric-label">Batting Average</p>
+            <div class="metric-value">{{ advanced_report.batting.average }}</div>
+            <div class="metric-footnote">Dismissal resistance</div>
+        </div>
         {% endif %}
-
-        {% if all_rounder_summary %}
-        <section class="section">
-            <div class="section-header">
-                <div>
-                    <p class="section-kicker">Role Summary</p>
-                    <h2 class="section-title">All-Rounder Impact</h2>
-                    <p class="section-note">Combined batting and bowling contribution for qualified all-rounders.</p>
-                </div>
-            </div>
-
-            <div class="metric-grid six">
-                <div class="metric-card">
-                    <p class="metric-label">Matches</p>
-                    <div class="metric-value">{{ all_rounder_summary.matches }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Runs</p>
-                    <div class="metric-value">{{ all_rounder_summary.runs }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Wickets</p>
-                    <div class="metric-value">{{ all_rounder_summary.wickets }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Bat SR</p>
-                    <div class="metric-value">{{ all_rounder_summary.batting_strike_rate }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Economy</p>
-                    <div class="metric-value">{{ all_rounder_summary.economy }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Impact Index</p>
-                    <div class="metric-value">{{ all_rounder_summary.impact_index }}</div>
-                </div>
-            </div>
-        </section>
+        {% if advanced_report.bowling %}
+        <div class="metric-card">
+            <p class="metric-label">Bowling Quality</p>
+            <div class="metric-value">{{ advanced_report.bowling.score }}</div>
+            <div class="metric-footnote">{{ advanced_report.bowling.level }} / Econ {{ advanced_report.bowling.economy }}</div>
+        </div>
+        <div class="metric-card">
+            <p class="metric-label">Dot Ball Rate</p>
+            <div class="metric-value">{{ advanced_report.bowling.dot_rate }}%</div>
+            <div class="metric-footnote">Pressure creation index</div>
+        </div>
         {% endif %}
+    </div>
 
-        {% if batter_report %}
-        <section class="section">
-            <div class="section-header">
-                <div>
-                    <p class="section-kicker">Batting Report</p>
-                    <h2 class="section-title">{{ batter_report.player }}</h2>
-                    <p class="section-note">Scoring output, phase control, dismissals, and matchup profile.</p>
-                </div>
+    <div class="row g-3 mt-1">
+        <div class="col-lg-4">
+            <div class="insight-column">
+                <h5>Strengths</h5>
+                <ul class="insight-list">
+                    {% for item in advanced_report.strengths %}<li>{{ item }}</li>{% endfor %}
+                </ul>
             </div>
-
-            <div class="metric-grid">
-                <div class="metric-card">
-                    <p class="metric-label">Career Runs</p>
-                    <div class="metric-value">{{ batter_report.runs }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Matches</p>
-                    <div class="metric-value">{{ batter_report.matches }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Strike Rate</p>
-                    <div class="metric-value">{{ batter_report.strike_rate }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Average</p>
-                    <div class="metric-value">{{ batter_report.average }}</div>
-                </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="insight-column">
+                <h5>Risks</h5>
+                <ul class="insight-list">
+                    {% for item in advanced_report.risks %}<li>{{ item }}</li>{% endfor %}
+                </ul>
             </div>
-
-            <div class="metric-grid mt-3">
-                <div class="metric-card">
-                    <p class="metric-label">Boundary Rate</p>
-                    <div class="metric-value">{{ batter_report.boundary_percentage }}%</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Dot Ball Rate</p>
-                    <div class="metric-value">{{ batter_report.dot_ball_percentage }}%</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Powerplay SR</p>
-                    <div class="metric-value">{{ batter_report.phases.powerplay_sr }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Death Overs SR</p>
-                    <div class="metric-value">{{ batter_report.phases.death_sr }}</div>
-                </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="insight-column">
+                <h5>Tactical Use</h5>
+                <ul class="insight-list">
+                    {% for item in advanced_report.recommendations %}<li>{{ item }}</li>{% endfor %}
+                </ul>
             </div>
+        </div>
+    </div>
 
+    <div class="data-block mt-4">
+        <div class="data-title">Phase Edge Analysis</div>
+        <div class="table-responsive">
+            {{ advanced_report.phase_edge.to_html(classes="table table-hover", index=False, border=0) | safe }}
+        </div>
+    </div>
+</div>
+{% endif %}
 
-            {% if season_chart %}
-            <div class="data-block">
-                <h3 class="data-title">📈 Runs by Season</h3>
-                <div class="panel">
-                    {{ season_chart | safe }}
-                </div>
-            </div>
-            {% endif %}
+{% if all_rounder_summary %}
+<div class="section fade-in-up">
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Role Summary</p>
+            <h2 class="section-title">All-Rounder Impact Index</h2>
+            <p class="section-note">Combined batting and bowling contribution score for qualified all-rounders.</p>
+        </div>
+    </div>
+    <div class="metric-grid six">
+        <div class="metric-card"><p class="metric-label">Matches</p><div class="metric-value">{{ all_rounder_summary.matches }}</div></div>
+        <div class="metric-card"><p class="metric-label">Runs</p><div class="metric-value">{{ all_rounder_summary.runs }}</div></div>
+        <div class="metric-card"><p class="metric-label">Wickets</p><div class="metric-value">{{ all_rounder_summary.wickets }}</div></div>
+        <div class="metric-card"><p class="metric-label">Bat SR</p><div class="metric-value">{{ all_rounder_summary.batting_strike_rate }}</div></div>
+        <div class="metric-card"><p class="metric-label">Economy</p><div class="metric-value">{{ all_rounder_summary.economy }}</div></div>
+        <div class="metric-card"><p class="metric-label">Impact Index</p><div class="metric-value" style="color:var(--brand);">{{ all_rounder_summary.impact_index }}</div></div>
+    </div>
+</div>
+{% endif %}
 
-            <div class="data-block">
-                <h3 class="data-title">Dangerous Bowlers</h3>
-                <div class="table-responsive">
-                    {{ batter_report.dangerous.to_html(classes="table table-striped table-hover table-bordered", index=False, border=0) | safe }}
-                </div>
-            </div>
+{% if batter_report %}
+<div class="section fade-in-up">
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Batting Profile</p>
+            <h2 class="section-title">{{ batter_report.player }}</h2>
+            <p class="section-note">Scoring output / phase control / dismissal patterns / matchup risks</p>
+        </div>
+        <a href="/reports" class="btn btn-outline" style="white-space:nowrap;">Export CSV</a>
+    </div>
 
-            <div class="data-block">
-                <h3 class="data-title">Favourite Bowlers</h3>
-                <div class="table-responsive">
-                    {{ batter_report.favourite.to_html(classes="table table-striped table-hover table-bordered", index=False, border=0) | safe }}
-                </div>
-            </div>
+    <div class="metric-grid">
+        <div class="metric-card"><p class="metric-label">Career Runs</p><div class="metric-value">{{ batter_report.runs }}</div><div class="metric-footnote">Total across selected scope</div></div>
+        <div class="metric-card"><p class="metric-label">Matches</p><div class="metric-value">{{ batter_report.matches }}</div></div>
+        <div class="metric-card"><p class="metric-label">Strike Rate</p><div class="metric-value">{{ batter_report.strike_rate }}</div></div>
+        <div class="metric-card"><p class="metric-label">Average</p><div class="metric-value">{{ batter_report.average }}</div></div>
+    </div>
 
-            <div class="data-block">
-                <h3 class="data-title">Best Venues</h3>
-                <div class="table-responsive">
-                    {{ batter_report.venues.to_html(classes="table table-striped table-hover table-bordered", index=False, border=0) | safe }}
-                </div>
-            </div>
+    <div class="metric-grid">
+        <div class="metric-card"><p class="metric-label">Boundary Rate</p><div class="metric-value">{{ batter_report.boundary_percentage }}%</div></div>
+        <div class="metric-card"><p class="metric-label">Dot Ball %</p><div class="metric-value">{{ batter_report.dot_ball_percentage }}%</div></div>
+        <div class="metric-card"><p class="metric-label">Powerplay SR</p><div class="metric-value">{{ batter_report.phases.powerplay_sr }}</div></div>
+        <div class="metric-card"><p class="metric-label">Death Overs SR</p><div class="metric-value">{{ batter_report.phases.death_sr }}</div></div>
+    </div>
 
-            <div class="data-block">
-                <h3 class="data-title">Top Opposition Teams</h3>
-                <div class="table-responsive">
-                    {{ batter_report.top_teams.to_html(classes="table table-striped table-hover table-bordered", index=False, border=0) | safe }}
-                </div>
-            </div>
+    {% if season_chart %}
+    <div class="data-block mt-2">
+        <div class="data-title">Runs by Season</div>
+        <div class="panel">{{ season_chart | safe }}</div>
+    </div>
+    {% endif %}
 
-            <div class="data-block">
-                <h3 class="data-title">Dismissal Breakdown</h3>
-                <div class="table-responsive">
-                    {{ batter_report.dismissal_breakdown.to_html(classes="table table-striped table-hover table-bordered", index=False, border=0) | safe }}
-                </div>
-            </div>
-        </section>
-        {% endif %}
+    <div class="row g-3 mt-2">
+        <div class="col-lg-6"><div class="data-block"><div class="data-title">Dangerous Bowlers</div><div class="table-responsive">{{ batter_report.dangerous.to_html(classes="table table-hover", index=False, border=0) | safe }}</div></div></div>
+        <div class="col-lg-6"><div class="data-block"><div class="data-title">Favourite Bowlers</div><div class="table-responsive">{{ batter_report.favourite.to_html(classes="table table-hover", index=False, border=0) | safe }}</div></div></div>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-6"><div class="data-block"><div class="data-title">Best Venues</div><div class="table-responsive">{{ batter_report.venues.to_html(classes="table table-hover", index=False, border=0) | safe }}</div></div></div>
+        <div class="col-lg-6"><div class="data-block"><div class="data-title">Top Opposition Teams</div><div class="table-responsive">{{ batter_report.top_teams.to_html(classes="table table-hover", index=False, border=0) | safe }}</div></div></div>
+    </div>
+    <div class="data-block"><div class="data-title">Dismissal Breakdown</div><div class="table-responsive">{{ batter_report.dismissal_breakdown.to_html(classes="table table-hover", index=False, border=0) | safe }}</div></div>
+</div>
+{% endif %}
 
-        {% if bowler_report %}
-        <section class="section">
-            <div class="section-header">
-                <div>
-                    <p class="section-kicker">Bowling Report</p>
-                    <h2 class="section-title">{{ bowler_report.player }}</h2>
-                    <p class="section-note">Wicket-taking profile, control metrics, venues, and batter matchups.</p>
-                </div>
-            </div>
+{% if bowler_report %}
+<div class="section fade-in-up">
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Bowling Profile</p>
+            <h2 class="section-title">{{ bowler_report.player }}</h2>
+            <p class="section-note">Wicket-taking profile / control metrics / venues / batter matchups</p>
+        </div>
+        <span class="score-badge">Season: {{ selected_season }}</span>
+    </div>
 
-            <div class="metric-grid">
-                <div class="metric-card">
-                    <p class="metric-label">Wickets</p>
-                    <div class="metric-value">{{ bowler_report.wickets }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Overs</p>
-                    <div class="metric-value">{{ bowler_report.overs }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Economy</p>
-                    <div class="metric-value">{{ bowler_report.economy }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Bowling SR</p>
-                    <div class="metric-value">{{ bowler_report.bowling_sr }}</div>
-                </div>
-            </div>
+    <div class="metric-grid">
+        <div class="metric-card"><p class="metric-label">Wickets</p><div class="metric-value" style="color:var(--brand);">{{ bowler_report.wickets }}</div></div>
+        <div class="metric-card"><p class="metric-label">Overs</p><div class="metric-value">{{ bowler_report.overs }}</div></div>
+        <div class="metric-card"><p class="metric-label">Economy</p><div class="metric-value">{{ bowler_report.economy }}</div></div>
+        <div class="metric-card"><p class="metric-label">Bowling SR</p><div class="metric-value">{{ bowler_report.bowling_sr }}</div></div>
+    </div>
 
-            <div class="metric-grid mt-3">
-                <div class="metric-card">
-                    <p class="metric-label">Boundary Conceded</p>
-                    <div class="metric-value">{{ bowler_report.boundary_percentage }}%</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Dot Ball Rate</p>
-                    <div class="metric-value">{{ bowler_report.dot_ball_percentage }}%</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Season Scope</p>
-                    <div class="metric-value">{{ selected_season }}</div>
-                </div>
-                <div class="metric-card">
-                    <p class="metric-label">Report Type</p>
-                    <div class="metric-value">Bowling</div>
-                </div>
-            </div>
+    <div class="metric-grid">
+        <div class="metric-card"><p class="metric-label">Boundary Conceded</p><div class="metric-value">{{ bowler_report.boundary_percentage }}%</div></div>
+        <div class="metric-card"><p class="metric-label">Dot Ball Rate</p><div class="metric-value">{{ bowler_report.dot_ball_percentage }}%</div></div>
+        <div class="metric-card"><p class="metric-label">Role</p><div class="metric-value" style="font-size:18px;">Bowler</div></div>
+        <div class="metric-card"><p class="metric-label">Scope</p><div class="metric-value" style="font-size:16px;">{{ selected_season }}</div></div>
+    </div>
 
-            <div class="data-block">
-                <h3 class="data-title">Favourite Batters</h3>
-                <div class="table-responsive">
-                    {{ bowler_report.fav_batters.to_html(classes="table table-striped table-hover table-bordered", index=False, border=0) | safe }}
-                </div>
-            </div>
-
-            <div class="data-block">
-                <h3 class="data-title">Dangerous Batters</h3>
-                <div class="table-responsive">
-                    {{ bowler_report.dangerous_batters.to_html(classes="table table-striped table-hover table-bordered", index=False, border=0) | safe }}
-                </div>
-            </div>
-
-            <div class="data-block">
-                <h3 class="data-title">Best Bowling Venues</h3>
-                <div class="table-responsive">
-                    {{ bowler_report.venues.to_html(classes="table table-striped table-hover table-bordered", index=False, border=0) | safe }}
-                </div>
-            </div>
-
-            <div class="data-block">
-                <h3 class="data-title">Dismissal Types</h3>
-                <div class="table-responsive">
-                    {{ bowler_report.dismissal_kinds.to_html(classes="table table-striped table-hover table-bordered", index=False, border=0) | safe }}
-                </div>
-            </div>
-
-            <div class="data-block">
-                <h3 class="data-title">Top Opposition Teams</h3>
-                <div class="table-responsive">
-                    {{ bowler_report.top_teams.to_html(classes="table table-striped table-hover table-bordered", index=False, border=0) | safe }}
-                </div>
-            </div>
-        </section>
-        {% endif %}
-    </main>
-</body>
-
-</html>
+    <div class="row g-3 mt-2">
+        <div class="col-lg-6"><div class="data-block"><div class="data-title">Favourite Batters</div><div class="table-responsive">{{ bowler_report.fav_batters.to_html(classes="table table-hover", index=False, border=0) | safe }}</div></div></div>
+        <div class="col-lg-6"><div class="data-block"><div class="data-title">Dangerous Batters</div><div class="table-responsive">{{ bowler_report.dangerous_batters.to_html(classes="table table-hover", index=False, border=0) | safe }}</div></div></div>
+    </div>
+    <div class="row g-3">
+        <div class="col-lg-6"><div class="data-block"><div class="data-title">Best Bowling Venues</div><div class="table-responsive">{{ bowler_report.venues.to_html(classes="table table-hover", index=False, border=0) | safe }}</div></div></div>
+        <div class="col-lg-6"><div class="data-block"><div class="data-title">Dismissal Types</div><div class="table-responsive">{{ bowler_report.dismissal_kinds.to_html(classes="table table-hover", index=False, border=0) | safe }}</div></div></div>
+    </div>
+    <div class="data-block"><div class="data-title">Top Opposition Teams</div><div class="table-responsive">{{ bowler_report.top_teams.to_html(classes="table table-hover", index=False, border=0) | safe }}</div></div>
+</div>
+{% endif %}
+{% endblock %}

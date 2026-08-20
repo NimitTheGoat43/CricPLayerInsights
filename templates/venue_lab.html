@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Stadium Fortress & Pitch Lab — Cric Player Insights{% endblock %}
+{% block description %}Analyze venue pitch biases, spin vs pace wicket ratios, chasing win percentages, and stadium fortress kings.{% endblock %}
+{% block nav_venue_lab %}active{% endblock %}
+{% block breadcrumb %}Stadium Pitch Lab{% endblock %}
+
+{% block content %}
+<section class="workspace fade-in-up">
+    <div class="hero-banner">
+        <div class="hero-eyebrow">Stadium & Environmental Intelligence</div>
+        <h1 class="hero-title">🏟️ Stadium Fortress & Pitch Lab</h1>
+        <p class="hero-subtitle">Inspect stadium pitch biases, Spin vs Pace wicket splits, Chasing vs Defending win rates, and ground fortress legends across all IPL venues!</p>
+    </div>
+
+    <!-- VENUE SELECTOR -->
+    <div class="search-card">
+        <form method="POST" class="analysis-form p-0" style="background:transparent;border:none;box-shadow:none;">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-9">
+                    <label class="form-label">Select Stadium / Venue</label>
+                    <select name="venue" class="form-select">
+                        {% for v in venue_data.venues_list %}
+                        <option value="{{ v }}" {% if v == venue_data.selected_venue %}selected{% endif %}>{{ v }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-lg-3">
+                    <button class="btn btn-primary w-100" type="submit">Analyze Pitch Lab</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% if venue_data %}
+<section class="section fade-in-up mt-4">
+    <!-- VENUE STATS HERO HEADER -->
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Stadium Profile</p>
+            <h2 class="section-title">{{ venue_data.selected_venue }}</h2>
+        </div>
+        <span class="badge bg-info text-dark" style="font-size:14px;padding:8px 18px;">
+            Total Matches Analyzed: {{ venue_data.total_matches }}
+        </span>
+    </div>
+
+    <!-- METRICS GRID -->
+    <div class="metric-grid four mb-4">
+        <div class="metric-card">
+            <p class="metric-label">Avg 1st Innings Score</p>
+            <div class="metric-value" style="color:var(--brand);font-size:34px;">{{ venue_data.avg_inn_runs }}</div>
+            <div class="metric-footnote">Runs per 20 overs</div>
+        </div>
+        <div class="metric-card">
+            <p class="metric-label">Chasing Win %</p>
+            <div class="metric-value" style="color:var(--success);font-size:34px;">{{ venue_data.chase_win_pct }}%</div>
+            <div class="metric-footnote">Team batting second</div>
+        </div>
+        <div class="metric-card">
+            <p class="metric-label">Defending Win %</p>
+            <div class="metric-value" style="color:var(--warning);font-size:34px;">{{ venue_data.defend_win_pct }}%</div>
+            <div class="metric-footnote">Team batting first</div>
+        </div>
+        <div class="metric-card">
+            <p class="metric-label">Spin vs Pace Bias</p>
+            <div class="metric-value" style="color:var(--brand-2);font-size:24px;">{{ venue_data.spin_bias }}% Spin / {{ venue_data.pace_bias }}% Pace</div>
+            <div class="metric-footnote">Wicket split bias</div>
+        </div>
+    </div>
+
+    <!-- STADIUM FORTRESS KINGS -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="section">
+                <div class="section-header">
+                    <div>
+                        <p class="section-kicker">Fortress Kings</p>
+                        <h2 class="section-title">👑 Top Batters at {{ venue_data.selected_venue }}</h2>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Stadium Runs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in venue_data.fortress_batters %}
+                            <tr>
+                                <td class="fw-bold" style="text-align:left!important;">{{ b.player }}</td>
+                                <td style="color:var(--brand);font-weight:800;">{{ b.runs }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="section">
+                <div class="section-header">
+                    <div>
+                        <p class="section-kicker">Fortress Kings</p>
+                        <h2 class="section-title">👑 Top Bowlers at {{ venue_data.selected_venue }}</h2>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Stadium Wickets</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for w in venue_data.fortress_bowlers %}
+                            <tr>
+                                <td class="fw-bold" style="text-align:left!important;">{{ w.player }}</td>
+                                <td style="color:var(--success);font-weight:800;">{{ w.wickets }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
