@@ -181,9 +181,9 @@ http://127.0.0.1:5000
 ---
 
 ## 👨‍💻 Developed By
-
+**Nimit Marvadi**
+B.Tech Computer Engineering
 **Yug Mehta**
-
 B.Tech Computer Engineering
 
 ---
